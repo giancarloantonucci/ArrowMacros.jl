@@ -123,9 +123,9 @@ macro ←(input)
     b = input.args[2].args[2:end]
     output = quote
         b_ = ($(b...),)
-        (@isdefined $f!) && hasmethod($f!, Tuple{typeof($a), typeof.(b_)...}) ? $f!($a, $(b...)) :
-        (@isdefined $f)  && hasmethod($f,  Tuple{typeof($a), typeof.(b_)...}) ? $f($a, $(b...))  :
-        (@isdefined $f)  && hasmethod($f,  Tuple{typeof.(b_)...})             ? $a = $f($(b...)) :
+        (@isdefined $f!) && (@isdefined $a) && hasmethod($f!, Tuple{typeof($a), typeof.(b_)...}) ? $f!($a, $(b...)) :
+        (@isdefined $f)  && (@isdefined $a) && hasmethod($f,  Tuple{typeof($a), typeof.(b_)...}) ? $f($a, $(b...))  :
+        (@isdefined $f)  && hasmethod($f,  Tuple{typeof.(b_)...})                                ? $a = $f($(b...)) :
         error("ERROR!")
     end
     esc(output)
