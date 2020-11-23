@@ -2,91 +2,120 @@ module ArrowMacros
 
 export @↓, @↑, @←
 
-function _getfield_nested(s, b_string)
-    b = Symbol(b_string)
-    if isstructtype(typeof(s))
-        if isdefined(s, b)
-            return getfield(s, b)
+# ---------------------------------------------------------------------------- #
+
+function _getfield_nested(constr, name)
+    if isstructtype(typeof(constr))
+        if isdefined(constr, name)
+            return getfield(constr, name)
         else
-            for fieldname in fieldnames(typeof(s))
-                field = getfield(s, fieldname)
-                a = _getfield_nested(field, b_string)
-                if a != nothing
-                    return a
+            for fn in fieldnames(typeof(constr))
+                field = getfield(constr, fn)
+                value = _getfield_nested(field, name)
+                if value != name
+                    return value
                 end
             end
         end
     end
-    return nothing
+    return name
 end
 
-function _prepend!(b, s)
-    for (i, b_i) in enumerate(b.args)
-        if b_i isa Symbol
-            b_i_string = String(b_i)
+function _prepend!(ex, constr)
+    for (i, ex_i) in enumerate(ex.args)
+        if ex_i isa Symbol
+            ex_i_string = String(ex_i)
             t = gensym()
-            b.args[i] = quote
-                $t = $_getfield_nested($s, $b_i_string)
-                if $t == nothing
-                    $t = $b_i
+            ex.args[i] = quote
+                $t = $_getfield_nested($constr, Symbol($ex_i_string))
+                if $t isa Symbol
+                    $t = $ex_i
                 end
                 $t
             end
-        elseif b_i isa Expr
-            b.args[i] = _prepend!(b_i, s)
+        elseif ex_i isa Expr
+            ex.args[i] = _prepend!(ex_i, constr)
         end
     end
-    return b
+    return ex
 end
 
-# expression needs to be of form `s = a, b ← abs(b), ...`
+"""
+    @↓ a, b ← abs(b), ... = s
+
+unpacks fields of structs and sub-structs.
+"""
 macro ↓(input)
-    s = input.args[1]
-    t = input.args[2]
-    vs = t isa Symbol ? [t] : t.args
+    constr = input.args[2]
+    blocks = input.args[1]
+    blocks = blocks isa Symbol ? [blocks] : blocks.args
     output = Expr(:block)
-    for v in vs
-        if v isa Symbol
-            a = b = v
-            b_string = String(b)
-            push!(output.args, :($a = $_getfield_nested($s, $b_string)))
-        elseif (v isa Expr) && (v.args[1] == :←)
-            a, b = v.args[2:3]
-            if b isa Symbol
-                b_string = String(b)
-                push!(output.args, :($a = $_getfield_nested($s, $b_string)))
-            elseif b isa Expr
-                _prepend!(b, s)
-                push!(output.args, :($a = $b))
+    for block in blocks
+        if block isa Symbol
+            value = name = block
+        elseif (block isa Expr) && (block.args[1] == :←)
+            value, name = block.args[2:3]
+        end
+        name_ = string(name)
+        if name isa Symbol
+            push!(output.args, :($value = $_getfield_nested($constr, Symbol($name_))))
+        elseif name isa Expr
+            ex = name
+            _prepend!(ex, constr)
+            push!(output.args, :($value = $ex))
+        end
+    end
+    esc(output)
+end
+
+# ---------------------------------------------------------------------------- #
+
+function _setfield_nested!(constr, name, value)
+    if isstructtype(typeof(constr))
+        if isdefined(constr, name)
+            return setfield!(constr, name, value)
+        else
+            for fn in fieldnames(typeof(constr))
+                field = getfield(constr, fn)
+                _setfield_nested!(field, name, value)
             end
-        else
-            error("dafuq?!")
         end
     end
-    esc(output)
+    return name
 end
 
-# expression needs to be of form `s = a, b ← abs(b), ...`
+"""
+    @↑ s = a, b ← abs(b), ...
+
+packs fields into mutable structs or sub-structs.
+"""
 macro ↑(input)
-    s = input.args[1]
-    t = input.args[2]
-    vs = t isa Symbol ? [t] : t.args
+    constr = input.args[1]
+    blocks = input.args[2]
+    blocks = blocks isa Symbol ? [blocks] : blocks.args
     output = Expr(:block)
-    for v in vs
-        if v isa Symbol
-            a = b = v
-            push!(output.args, :($s.$a = $b))
-        elseif v isa Expr && v.args[1] == :←
-            a, b = v.args[2:3]
-            push!(output.args, :($s.$a = $b))
-        else
-            error("dafuq?!")
+    for block in blocks
+        if block isa Symbol
+            name = value = block
+        elseif block isa Expr && block.args[1] == :←
+            name, value = block.args[2:3]
         end
+        name_ = string(name)
+        push!(output.args, :($_setfield_nested!($constr, Symbol($name_), $value)))
     end
     esc(output)
 end
 
-# expression needs to be of form `a = f(b...)`
+# ---------------------------------------------------------------------------- #
+
+"""
+    @← a = f(b...)
+
+changes into one of the following, in order of precedence:
+1. `f!(a, b...)`,
+2. `f(a, b...)`,
+3. `a = f(b...)`.
+"""
 macro ←(input)
     a = input.args[1]
     f = input.args[2].args[1]
@@ -97,7 +126,7 @@ macro ←(input)
         (@isdefined $f!) && hasmethod($f!, Tuple{typeof($a), typeof.(b_)...}) ? $f!($a, $(b...)) :
         (@isdefined $f)  && hasmethod($f,  Tuple{typeof($a), typeof.(b_)...}) ? $f($a, $(b...))  :
         (@isdefined $f)  && hasmethod($f,  Tuple{typeof.(b_)...})             ? $a = $f($(b...)) :
-        error("dafuq?!")
+        error("ERROR!")
     end
     esc(output)
 end
