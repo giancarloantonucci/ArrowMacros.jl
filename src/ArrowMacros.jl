@@ -2,7 +2,6 @@ module ArrowMacros
 
 export @↓, @↑, @←
 
-# %%
 function _getfield_nested(constr, name)
     if isstructtype(typeof(constr))
         if isdefined(constr, name)
@@ -67,7 +66,6 @@ macro ↓(input)
     esc(output)
 end
 
-# %%
 function _setfield_nested!(constr, name, value)
     if isstructtype(typeof(constr))
         if isdefined(constr, name)
@@ -104,7 +102,6 @@ macro ↑(input)
     esc(output)
 end
 
-# %%
 """
     @← a = f(b...)
 
