@@ -1,6 +1,53 @@
 module ArrowMacros
 
-export @↓, @↑, @←
+export @↓, @↑, @⤓, @⤒, @←
+
+function _prepend_onelevel!(ex, constr)
+    for (i, ex_i) in enumerate(ex.args)
+        if ex_i isa Symbol
+            ex_i_string = String(ex_i)
+            t = gensym()
+            ex.args[i] = quote
+                $t = $getfield($constr, Symbol($ex_i_string))
+                if $t isa Symbol
+                    $t = $ex_i
+                end
+                $t
+            end
+        elseif ex_i isa Expr
+            ex.args[i] = _prepend!(ex_i, constr)
+        end
+    end
+    return ex
+end
+
+"""
+    @↓ a, b ← abs(b), ... = s
+
+unpacks fields of structs and sub-structs.
+"""
+macro ↓(input)
+    constr = input.args[2]
+    blocks = input.args[1]
+    blocks = blocks isa Symbol ? [blocks] : blocks.args
+    output = Expr(:block)
+    for block in blocks
+        if block isa Symbol
+            value = name = block
+        elseif (block isa Expr) && (block.args[1] == :←)
+            value, name = block.args[2:3]
+        end
+        name_ = string(name)
+        if name isa Symbol
+            push!(output.args, :($value = $getfield($constr, Symbol($name_))))
+        elseif name isa Expr
+            ex = name
+            _prepend!(ex, constr)
+            push!(output.args, :($value = $ex))
+        end
+    end
+    esc(output)
+end
 
 function _getfield_nested(constr, name)
     if isstructtype(typeof(constr))
@@ -39,11 +86,11 @@ function _prepend!(ex, constr)
 end
 
 """
-    @↓ a, b ← abs(b), ... = s
+    @⤓ a, b ← abs(b), ... = s
 
 unpacks fields of structs and sub-structs.
 """
-macro ↓(input)
+macro ⤓(input)
     constr = input.args[2]
     blocks = input.args[1]
     blocks = blocks isa Symbol ? [blocks] : blocks.args
@@ -66,6 +113,28 @@ macro ↓(input)
     esc(output)
 end
 
+"""
+    @↑ s = a, b ← abs(b), ...
+
+packs fields into mutable structs or sub-structs.
+"""
+macro ↑(input)
+    constr = input.args[1]
+    blocks = input.args[2]
+    blocks = blocks isa Symbol ? [blocks] : blocks.args
+    output = Expr(:block)
+    for block in blocks
+        if block isa Symbol
+            name = value = block
+        elseif block isa Expr && block.args[1] == :←
+            name, value = block.args[2:3]
+        end
+        name_ = string(name)
+        push!(output.args, :($setfield!($constr, Symbol($name_), $value)))
+    end
+    esc(output)
+end
+
 function _setfield_nested!(constr, name, value)
     if isstructtype(typeof(constr))
         if isdefined(constr, name)
@@ -81,11 +150,11 @@ function _setfield_nested!(constr, name, value)
 end
 
 """
-    @↑ s = a, b ← abs(b), ...
+    @⤒ s = a, b ← abs(b), ...
 
 packs fields into mutable structs or sub-structs.
 """
-macro ↑(input)
+macro ⤒(input)
     constr = input.args[1]
     blocks = input.args[2]
     blocks = blocks isa Symbol ? [blocks] : blocks.args

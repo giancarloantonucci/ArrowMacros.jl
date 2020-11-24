@@ -15,15 +15,29 @@ mutable struct Example3
 end
 
 @testset "↓" begin
+    example = Example(1, [-2, -3])
+    @↓ a, e ← abs.(b) = example
+    @test (a, e...) == (1, 2, 3)
+end
+
+@testset "⤓" begin
     example = Example(1, Example2(2, Example3(3, [-4, -5])))
-    @↓ a, c, d ← e, e ← abs.(f) = example
+    @⤓ a, c, d ← e, e ← abs.(f) = example
     @test (a, c, d, e...) == (1, 2, 3, 4, 5)
 end
 
 @testset "↑" begin
+    example = Example(0, Example2(0, 0))
+    a = 4
+    @↑ example = a, b ← abs(-3)
+    @test example.a == 4
+    @test example.b == 3
+end
+
+@testset "⤒" begin
     example = Example(0, Example2(0, Example3(0, 0)))
     a = 4
-    @↑ example = a, c ← abs(-3), d ← Example3(2, 1)
+    @⤒ example = a, c ← abs(-3), d ← Example3(2, 1)
     @test example.a == 4
     @test example.b.c == 3
     @test example.b.d.e == 2
