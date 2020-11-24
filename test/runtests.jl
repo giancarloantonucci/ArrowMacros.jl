@@ -1,47 +1,42 @@
 using ArrowMacros
 using Test
 
-mutable struct Example
+mutable struct S1
     a
     b
 end
-mutable struct Example2
+mutable struct S2
     c
     d
 end
-mutable struct Example3
-    e
-    f
-end
 
 @testset "↓" begin
-    example = Example(1, [-2, -3])
-    @↓ a, e ← abs.(b) = example
-    @test (a, e...) == (1, 2, 3)
+    s = S1(1, [-2, -3])
+    @↓ a, b ← abs.(b) = s
+    @test (a, b...) == (1, 2, 3)
 end
 
 @testset "⤓" begin
-    example = Example(1, Example2(2, Example3(3, [-4, -5])))
-    @⤓ a, c, d ← e, e ← abs.(f) = example
-    @test (a, c, d, e...) == (1, 2, 3, 4, 5)
+    es = S1(1, S2(2, [-3, -4]))
+    @⤓ a, b ← c, c ← abs.(d) = es
+    @test (a, b, c...) == (1, 2, 3, 4)
 end
 
 @testset "↑" begin
-    example = Example(0, Example2(0, 0))
-    a = 4
-    @↑ example = a, b ← abs(-3)
-    @test example.a == 4
-    @test example.b == 3
+    s = S1(0, 0)
+    a = 1
+    @↑ s = a, b ← a + 1
+    @test s.a == 1
+    @test s.b == 2
 end
 
 @testset "⤒" begin
-    example = Example(0, Example2(0, Example3(0, 0)))
-    a = 4
-    @⤒ example = a, c ← abs(-3), d ← Example3(2, 1)
-    @test example.a == 4
-    @test example.b.c == 3
-    @test example.b.d.e == 2
-    @test example.b.d.f == 1
+    s = S1(0, S2(0, 0))
+    a = 1
+    @⤒ s = a, c ← a + 1, d ← [3, 4]
+    @test s.a == 1
+    @test s.b.c == 2
+    @test s.b.d == [3, 4]
 end
 
 @testset "←" begin
