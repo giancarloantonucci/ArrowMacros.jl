@@ -14,9 +14,9 @@ macro ←(input)
     output = quote
         b_ = ($(b...), )
         ⚐ = try $a; true; catch; false; end
-        !⚐ && (@isdefined $f)  && hasmethod($f,  Tuple{typeof.(b_)...})             ? $a = $f($(b...)) :
-        ⚐  && (@isdefined $f!) && hasmethod($f!, Tuple{typeof($a), typeof.(b_)...}) ? $f!($a, $(b...)) :
-        ⚐  && (@isdefined $f)  && hasmethod($f,  Tuple{typeof($a), typeof.(b_)...}) ? $f($a, $(b...))  :
+        ⚐ && (@isdefined $f!) && hasmethod($f!, Tuple{typeof($a), typeof.(b_)...}) ? $f!($a, $(b...)) :
+        ⚐ && (@isdefined $f)  && hasmethod($f,  Tuple{typeof($a), typeof.(b_)...}) ? $f($a, $(b...))  :
+        (@isdefined $f) && hasmethod($f,  Tuple{typeof.(b_)...})                    ? $a = $f($(b...)) :
         error("ERROR!")
     end
     esc(output)
