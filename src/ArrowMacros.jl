@@ -2,93 +2,94 @@ module ArrowMacros
 
 export @↓, @↑, @⤓, @⤒, @←
 
-function _getfield(constr, name)
-    if isstructtype(typeof(constr))
-        if isdefined(constr, name)
-            return getfield(constr, name)
+function _getfield(s, b)
+    if isstructtype(typeof(s))
+        if isdefined(s, b)
+            return getfield(s, b)
         end
     end
-    return name
+    return b
 end
 
-function _prepend!(ex, constr)
+function _prepend!(ex, s)
     for (i, ex_i) in enumerate(ex.args)
         if ex_i isa Symbol
-            ex_i_string = String(ex_i)
+            ex_i_string = string(ex_i)
             t = gensym()
             ex.args[i] = quote
-                $t = $_getfield($constr, Symbol($ex_i_string))
+                $t = $_getfield($s, Symbol($ex_i_string))
                 if $t isa Symbol
                     $t = $ex_i
                 end
                 $t
             end
         elseif ex_i isa Expr
-            ex.args[i] = _prepend!(ex_i, constr)
+            ex.args[i] = _prepend!(ex_i, s)
         end
     end
     return ex
 end
 
+get_expr(str, obj::Symbol) = :($obj = $str.$obj)
+function get_expr(str, obj::Expr)
+    if obj.args[1] == :←
+        a, b = obj.args[2:3]
+        e = b isa Symbol ? :($a = $str.$b)              :
+            b isa Expr   ? :($a = $(_prepend!(b, str))) :
+            error("ERROR!")
+        return e
+    end
+end
+
 """
-    @↓ a, b ← abs(b), ... = s
+    @↓ a, c ← abs(b), ... = s
 
 unpacks fields of structs and sub-structs.
 """
 macro ↓(input)
-    constr = input.args[2]
-    blocks = input.args[1]
-    blocks = blocks isa Symbol ? [blocks] : blocks.args
+    lhs, rhs = input.args[1:2]
+    str = rhs isa Symbol ? rhs : rhs.args[2]
+    objs = lhs isa Symbol || (lhs isa Expr && lhs.args[1] == :←) ? [lhs]    :
+           lhs isa Expr && lhs.head == :tuple                    ? lhs.args :
+           error("ERROR!")
     output = Expr(:block)
-    for block in blocks
-        if block isa Symbol
-            value = name = block
-        elseif (block isa Expr) && (block.args[1] == :←)
-            value, name = block.args[2:3]
-        end
-        name_ = string(name)
-        if name isa Symbol
-            push!(output.args, :($value = $_getfield($constr, Symbol($name_))))
-        elseif name isa Expr
-            ex = name
-            _prepend!(ex, constr)
-            push!(output.args, :($value = $ex))
-        end
+    for obj in objs
+        push!(output.args, get_expr(str, obj))
     end
     esc(output)
 end
 
-function _deep_getfield(constr, name)
-    if isstructtype(typeof(constr))
-        if isdefined(constr, name)
-            return getfield(constr, name)
+function _deep_getfield(s, b)
+    if isstructtype(typeof(s))
+        if isdefined(s, b)
+            return getfield(s, b)
         else
-            for fn in fieldnames(typeof(constr))
-                field = getfield(constr, fn)
-                value = _deep_getfield(field, name)
-                if value != name
-                    return value
+            for fn in fieldnames(typeof(s))
+                field = getfield(s, fn)
+                a = _deep_getfield(field, b)
+                if a != b
+                    return a
                 end
             end
         end
     end
-    return name
+    return b
 end
 
-function _deep_prepend!(ex, constr)
+function _deep_prepend!(ex, s)
     for (i, ex_i) in enumerate(ex.args)
         if ex_i isa Symbol
-            ex_i_string = String(ex_i)
+            ex_i_string = string(ex_i)
             t = gensym()
             ex.args[i] = quote
-                $t = $_deep_getfield($constr, Symbol($ex_i_string))
+                $t = $_deep_getfield($s, Symbol($ex_i_string))
                 if $t isa Symbol
                     $t = $ex_i
                 end
                 $t
             end
         elseif ex_i isa Expr
-            ex.args[i] = _deep_prepend!(ex_i, constr)
+            ex.args[i] = _deep_prepend!(ex_i, s)
         end
     end
     return ex
@@ -100,35 +101,35 @@ end
 unpacks fields of structs and sub-structs.
 """
 macro ⤓(input)
-    constr = input.args[2]
-    blocks = input.args[1]
-    blocks = blocks isa Symbol ? [blocks] : blocks.args
+    s = input.args[2]
+    vars = input.args[1]
+    vars = vars isa Symbol ? [vars] : vars.args
     output = Expr(:block)
-    for block in blocks
-        if block isa Symbol
-            value = name = block
-        elseif (block isa Expr) && (block.args[1] == :←)
-            value, name = block.args[2:3]
+    for v in vars
+        if v isa Symbol
+            a = b = v
+        elseif (v isa Expr) && (v.args[1] == :←)
+            a, b = v.args[2:3]
         end
-        name_ = string(name)
-        if name isa Symbol
-            push!(output.args, :($value = $_deep_getfield($constr, Symbol($name_))))
-        elseif name isa Expr
-            ex = name
-            _deep_prepend!(ex, constr)
-            push!(output.args, :($value = $ex))
+        b_ = string(b)
+        if b isa Symbol
+            push!(output.args, :($a = $_deep_getfield($s, Symbol($b_))))
+        elseif b isa Expr
+            ex = b
+            _deep_prepend!(ex, s)
+            push!(output.args, :($a = $ex))
         end
     end
     esc(output)
 end
 
-function _setfield!(constr, name, value)
-    if isstructtype(typeof(constr))
-        if isdefined(constr, name)
-            return setfield!(constr, name, value)
+function _setfield!(s, b, a)
+    if isstructtype(typeof(s))
+        if isdefined(s, b)
+            return setfield!(s, b, a)
         end
     end
-    return name
+    return b
 end
 
 """
@@ -137,34 +138,34 @@ end
 packs fields into mutable structs or sub-structs.
 """
 macro ↑(input)
-    constr = input.args[1]
-    blocks = input.args[2]
-    blocks = blocks isa Symbol ? [blocks] : blocks.args
+    s = input.args[1]
+    vars = input.args[2]
+    vars = vars isa Symbol ? [vars] : vars.args
     output = Expr(:block)
-    for block in blocks
-        if block isa Symbol
-            name = value = block
-        elseif block isa Expr && block.args[1] == :←
-            name, value = block.args[2:3]
+    for v in vars
+        if v isa Symbol
+            b = a = v
+        elseif v isa Expr && v.args[1] == :←
+            b, a = v.args[2:3]
         end
-        name_ = string(name)
-        push!(output.args, :($_setfield!($constr, Symbol($name_), $value)))
+        b_ = string(b)
+        push!(output.args, :($_setfield!($s, Symbol($b_), $a)))
     end
     esc(output)
 end
 
-function _deep_setfield!(constr, name, value)
-    if isstructtype(typeof(constr))
-        if isdefined(constr, name)
-            return setfield!(constr, name, value)
+function _deep_setfield!(s, b, a)
+    if isstructtype(typeof(s))
+        if isdefined(s, b)
+            return setfield!(s, b, a)
         else
-            for fn in fieldnames(typeof(constr))
-                field = getfield(constr, fn)
-                _deep_setfield!(field, name, value)
+            for fn in fieldnames(typeof(s))
+                field = getfield(s, fn)
+                _deep_setfield!(field, b, a)
             end
         end
     end
-    return name
+    return b
 end
 
 """
@@ -173,18 +174,18 @@ end
 packs fields into mutable structs or sub-structs.
 """
 macro ⤒(input)
-    constr = input.args[1]
-    blocks = input.args[2]
-    blocks = blocks isa Symbol ? [blocks] : blocks.args
+    s = input.args[1]
+    vars = input.args[2]
+    vars = vars isa Symbol ? [vars] : vars.args
     output = Expr(:block)
-    for block in blocks
-        if block isa Symbol
-            name = value = block
-        elseif block isa Expr && block.args[1] == :←
-            name, value = block.args[2:3]
+    for v in vars
+        if v isa Symbol
+            b = a = v
+        elseif v isa Expr && v.args[1] == :←
+            b, a = v.args[2:3]
         end
-        name_ = string(name)
-        push!(output.args, :($_deep_setfield!($constr, Symbol($name_), $value)))
+        b_ = string(b)
+        push!(output.args, :($_deep_setfield!($s, Symbol($b_), $a)))
     end
     esc(output)
 end
@@ -192,7 +193,7 @@ end
 """
     @← a = f(b...)
 
-changes into one of the following, in order of precedence:
+changes `a = f(b...)` into one of the following (in this order):
 1. `f!(a, b...)`,
 2. `f(a, b...)`,
 3. `a = f(b...)`.
@@ -203,10 +204,11 @@ macro ←(input)
     f! = Symbol(f, "!")
     b = input.args[2].args[2:end]
     output = quote
-        b_ = ($(b...),)
-        (@isdefined $f!) && hasmethod($f!, Tuple{typeof($a), typeof.(b_)...}) ? $f!($a, $(b...)) :
-        (@isdefined $f)  && hasmethod($f,  Tuple{typeof($a), typeof.(b_)...}) ? $f($a, $(b...))  :
-        (@isdefined $f)  && hasmethod($f,  Tuple{typeof.(b_)...})             ? $a = $f($(b...)) :
+        b_ = ($(b...), )
+        ⚐ = try $a; true; catch; false; end
+        !⚐ && (@isdefined $f)  && hasmethod($f,  Tuple{typeof.(b_)...})             ? $a = $f($(b...)) :
+        ⚐  && (@isdefined $f!) && hasmethod($f!, Tuple{typeof($a), typeof.(b_)...}) ? $f!($a, $(b...)) :
+        ⚐  && (@isdefined $f)  && hasmethod($f,  Tuple{typeof($a), typeof.(b_)...}) ? $f($a, $(b...))  :
         error("ERROR!")
     end
     esc(output)
