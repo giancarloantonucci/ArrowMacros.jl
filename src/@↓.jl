@@ -4,11 +4,12 @@ function _prepend!(ex::Expr, s)
             ex_i_string = string(ex_i)
             t = gensym()
             ex.args[i] = quote
-                if ($ex_i) in fieldnames(typeof($s))
-                    return $s.$ex_i
+                if Symbol($ex_i_string) in fieldnames(typeof($s))
+                    $t = $s.$ex_i
                 else
-                    return $ex_i
+                    $t = $ex_i
                 end
+                $t
             end
         elseif ex_i isa Expr
             ex.args[i] = _prepend!(ex_i, s)
@@ -36,10 +37,10 @@ end
 unpacks fields of structs and sub-structs.
 """
 macro ↓(input)
-    lhs, rhs = input.args[1:2]
-    s = rhs isa Symbol ? rhs : rhs.args[2]
-    objs = lhs isa Symbol || (lhs isa Expr && lhs.args[1] == :←) ? [lhs]    :
-           lhs isa Expr && lhs.head == :tuple                    ? lhs.args :
+    LHS, RHS = input.args[1:2]
+    s = RHS
+    objs = LHS isa Symbol || (LHS isa Expr && LHS.args[1] == :←) ? [LHS]    :
+           LHS isa Expr && LHS.head == :tuple                    ? LHS.args :
            error("ERROR!")
     output = Expr(:block)
     for obj in objs

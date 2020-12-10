@@ -11,9 +11,24 @@ mutable struct S2
 end
 
 @testset "↓" begin
-    s = S1(1, [-2, -3])
-    @↓ b ← abs.(b), a = s
+    # simple unpack
+    s = S1(1, 2)
+    @↓ a, b = s
+    @test (a, b) == (1, 2)
+    # unpack with function
+    s = S1(-1, 2)
+    @↓ a ← a + 1 = s
+    @test a == 0
+    @↓ a ← abs(a), b = s
+    @test (a, b) == (1, 2)
+    # unpack from array
+    v = [S1(1, [2, 3]), 4]
+    @↓ a, b = v[1]
     @test (a, b...) == (1, 2, 3)
+    # unpack from struct
+    z = S2(S1(1, 2), 3)
+    @↓ a, b = z.c
+    @test (a, b) == (1, 2)
 end
 
 @testset "⤓" begin

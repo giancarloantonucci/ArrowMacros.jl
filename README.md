@@ -49,9 +49,9 @@ h!(a, b) = a .= b
 
 ## Installation
 
-`ArrowMacros` is compatible with Julia `v1.0` and above. Being not registered yet, it can be installed by cloning this repository:
+`ArrowMacros` is compatible with Julia `v1.0` and above, and it can be installed by running
 ```julia
-]add https://github.com/antonuccig/ArrowMacros.jl
+]add ArrowMacros
 ```
 
 ## What's in the pipeline
