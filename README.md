@@ -20,11 +20,11 @@ end
 
 s = A(1, -1)
 @↓ a, b ← abs(b) + 1 = s
-# a == 1; b == 2
+# (a, b) == (1, 2)
 
 a += 1
 @↑ s = a, b ← 2b - 1
-# s.a == 2; s.b == 3
+# (s.a, s.b) == (2, 3)
 ```
 
 `@⤓` and `@⤒` work as `@↓` and `@↑` but search in the tree structure of the `struct`:
@@ -36,26 +36,29 @@ end
 
 s = A(1, B(2, [3, 4]))
 @⤓ a, b ← c, c ← d[1] = s
-# a == 1; b == 2; c == 3
+# (a, b, c) == (1, 2, 3)
 
 a += 1
 @⤒ s = a, b ← 2b
-# s.a == 2; s.b == 4
+# (s.a, s.b) == (2, 4)
 ```
 
 `@←` allows for a common syntax between in-place and standard functions:
 ```julia
 f(b) = b
-@← a = f(1) # equiv to a = f(1)
+# a = f(1)
+@← a = f(1)
 
 # a == 1
 a = [0, 0]
 g(a, b) = a .= b
-@← a = g(1) # equiv to g(a, 1)
+# g(a, 1)
+@← a = g(1)
 # a == [1, 1]
 
 h!(a, b) = a .= b
-@← a = h(2) # equiv to h!(a, 2)
+# h!(a, 2)
+@← a = h(2)
 # a == [2, 2]
 ```
 

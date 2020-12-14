@@ -1,4 +1,4 @@
-name: ContinuousIntegration
+name: CI
 on:
   - push
   - pull_request
@@ -11,7 +11,7 @@ jobs:
       matrix:
         version:
           - '1.0'
-          - '1'
+          - 'nightly'
         os:
           - ubuntu-latest
           - macOS-latest
