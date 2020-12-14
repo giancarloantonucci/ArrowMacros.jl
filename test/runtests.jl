@@ -1,74 +1,152 @@
 using ArrowMacros
 using Test
 
-mutable struct S1
+mutable struct A
     a
     b
 end
-mutable struct S2
+mutable struct B
     c
     d
 end
 
 @testset "↓" begin
-    # simple unpack
-    s = S1(1, 2)
-    @↓ a, b = s
-    @test (a, b) == (1, 2)
-    # unpack with function
-    s = S1(-1, 2)
-    @↓ a ← a + 1 = s
-    @test a == 0
-    @↓ a ← abs(a), b = s
-    @test (a, b) == (1, 2)
-    # unpack from array
-    v = [S1(1, [2, 3]), 4]
-    @↓ a, b = v[1]
-    @test (a, b...) == (1, 2, 3)
-    # unpack from struct
-    z = S2(S1(1, 2), 3)
-    @↓ a, b = z.c
-    @test (a, b) == (1, 2)
-end
+    s = A(1, [2, 3])
+    @↓ a = s
+    @test a == 1
 
-@testset "⤓" begin
-    es = S1(1, S2(2, [-3, -4]))
-    @⤓ b ← c, a, c ← abs.(d) = es
-    @test (a, b, c...) == (1, 2, 3, 4)
+    @↓ a, b = s
+    @test (a, b) == (1, [2, 3])
+
+    @↓ a ← b .+ 2 = s
+    @test a == [4, 5]
+
+    @↓ a ← 2a, b = s
+    @test (a, b) == (2, [2, 3])
+
+    @↓ c ← (@. abs(3a + 2b)) = s
+    @test c == [7, 9]
+
+    s = A(1, B(2, [3, 4]))
+    @↓ c, d = s.b
+    @test (c, d) == (2, [3, 4])
+
+    v = [A(1, [2, 3])]
+    @↓ a, b = v[1]
+    @test (a, b) == (1, [2, 3])
 end
 
 @testset "↑" begin
-    s = S1(0, 0)
     a = 1
-    @↑ s = b ← a + 1, a
+    s = A(0, 0)
+    @↑ s = a
     @test s.a == 1
-    @test s.b == 2
+
+    b = [2, 3]
+    @↑ s = a, b
+    @test (s.a, s.b) == (1, [2, 3])
+
+    @↑ s = a ← b .+ 2
+    @test s.a == [4, 5]
+
+    @↑ s = a ← 2a, b
+    @test (s.a, s.b) == (2, [2, 3])
+
+    @↑ s = b ← (@. abs(3a + 2b))
+    @test s.b == [7, 9]
+
+    s.b = B(0, 0)
+    @↑ s.b = c ← 2, d ← [3, 4]
+    @test (s.b.c, s.b.d) == (2, [3, 4])
+
+    v = [s]
+    @↑ v[1] = a ← 2, b ← [3, 4]
+    @test (v[1].a, v[1].b) == (2, [3, 4])
+end
+
+@testset "⤓" begin
+    s = A(1, [2, 3])
+    @⤓ a = s
+    @test a == 1
+
+    @⤓ a, b = s
+    @test (a, b) == (1, [2, 3])
+
+    @⤓ a ← b .+ 2 = s
+    @test a == [4, 5]
+
+    @⤓ a ← 2a, b = s
+    @test (a, b) == (2, [2, 3])
+
+    @⤓ c ← (@. abs(3a + 2b)) = s
+    @test c == [7, 9]
+
+    s = A(1, B(2, [3, 4]))
+    @⤓ c, d = s
+    @test (c, d) == (2, [3, 4])
+
+    v = [A(1, [2, 3])]
+    @⤓ a, b = v[1]
+    @test (a, b) == (1, [2, 3])
 end
 
 @testset "⤒" begin
-    s = S1(0, S2(0, 0))
     a = 1
-    @⤒ s = c ← a + 1, a, d ← [3, 4]
+    s = A(0, 0)
+    @⤒ s = a
     @test s.a == 1
-    @test s.b.c == 2
-    @test s.b.d == [3, 4]
+
+    b = [2, 3]
+    @⤒ s = a, b
+    @test (s.a, s.b) == (1, [2, 3])
+
+    @⤒ s = a ← b .+ 2
+    @test s.a == [4, 5]
+
+    @⤒ s = a ← 2a, b
+    @test (s.a, s.b) == (2, [2, 3])
+
+    @⤒ s = b ← (@. abs(3a + 2b))
+    @test s.b == [7, 9]
+
+    s.b = B(0, 0)
+    @⤒ s = c ← 2, d ← [3, 4]
+    @test (s.b.c, s.b.d) == (2, [3, 4])
+
+    v = [s]
+    @⤒ v[1] = a ← 2, b ← [3, 4]
+    @test (v[1].a, v[1].b) == (2, [3, 4])
 end
 
 @testset "←" begin
     f(b) = b
     @← a = f(1)
     @test a == 1
-    a = [0, 2]
+
+    v = [0, 0]
+    @← v[1] = f(1)
+    @test v[1] == 1
+
+    a = [0, 0]
     function g(a, b)
         a[1] = b
         return a
     end
     @← a = g(1)
-    @test a == [1, 2]
+    @test a == [1, 0]
+
+    v = [[0], [0]]
+    @← v[1] = g(1)
+    @test v[1] == [1]
+
     function h!(a, b)
         a[1] = b
         return a
     end
     @← a = h(2)
-    @test a == [2, 2]
+    @test a == [2, 0]
+
+    v = [[0], [0]]
+    @← v[1] = h(2)
+    @test v[1] == [2]
 end

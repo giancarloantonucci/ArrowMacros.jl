@@ -1,51 +1,66 @@
-function _prepend!(ex::Expr, s)
-    for (i, ex_i) in enumerate(ex.args)
-        if ex_i isa Symbol
-            ex_i_string = string(ex_i)
-            t = gensym()
-            ex.args[i] = quote
-                if Symbol($ex_i_string) in fieldnames(typeof($s))
-                    $t = $s.$ex_i
-                else
-                    $t = $ex_i
-                end
-                $t
+_unpack(composite_type, ::Val{field}) where {field} = getproperty(composite_type, field)
+
+function _prepend(composite_type, expression::Expr)
+    i₀ = Meta.isexpr(expression, :call) || Meta.isexpr(expression, :.) || Meta.isexpr(expression, :macrocall) ? 2 : 1
+    for i in i₀:length(expression.args)
+        dummy = expression.args[i]
+        if dummy isa Symbol
+            expression.args[i] = quote
+                $_unpack($composite_type, Val($(Expr(:quote, dummy))))
             end
-        elseif ex_i isa Expr
-            ex.args[i] = _prepend!(ex_i, s)
+        elseif dummy isa Expr
+            expression.args[i] = _prepend(composite_type, dummy)
         end
     end
-    return ex
+    return expression
 end
 
-get_obj(s, obj::Symbol) = :($obj = $s.$obj)
-function get_obj(s, obj::Expr)
-    if obj.args[1] == :←
-        a, b = obj.args[2:3]
-        e = b isa Symbol ? :($a = $s.$b)              :
-            b isa Expr   ? :($a = $(_prepend!(b, s))) :
-            error("ERROR!")
-        return e
-    else
-        error("ERROR!")
+function _get(composite_type, object::Symbol)
+    variable = field = object
+    return quote
+        $variable = $_unpack($composite_type, Val($(Expr(:quote, field))))
+    end
+end
+
+function _get(composite_type, object::Expr)
+    if object.args[1] != :←
+        error("`object` syntax must be like `a` or `c ← f(b)`")
+    end
+    variable, field = object.args[2:3]
+    if field isa Symbol
+        return quote
+            $variable = $_unpack($composite_type, Val($(Expr(:quote, field))))
+        end
+    elseif field isa Expr
+        return quote
+            $variable = $(_prepend(composite_type, field))
+        end
     end
 end
 
 """
-    @↓ a, c ← abs(b), ... = s
+    @↓ a, c ← f(b) = s
 
-unpacks fields of structs and sub-structs.
+unpacks objects from composite types.
 """
 macro ↓(input)
-    LHS, RHS = input.args[1:2]
-    s = RHS
-    objs = LHS isa Symbol || (LHS isa Expr && LHS.args[1] == :←) ? [LHS]    :
-           LHS isa Expr && LHS.head == :tuple                    ? LHS.args :
-           error("ERROR!")
+    if !Meta.isexpr(input, :(=))
+        error("`input` syntax must be like `a, c ← f(b) = s`")
+    end
+    lhs, rhs = input.args[1:2]
+    composite_type = gensym()
+    array_of_objects = if lhs isa Symbol || lhs isa Expr && lhs.args[1] == :←
+        [lhs]
+    elseif lhs isa Expr && Meta.isexpr(lhs, :tuple)
+        lhs.args
+    else
+        error("`lhs` syntax must be like `a, c ← f(b)`")
+    end
     output = Expr(:block)
-    for obj in objs
-        ex = get_obj(s, obj)
-        push!(output.args, ex)
+    push!(output.args, :(local $composite_type = $rhs))
+    for object in array_of_objects
+        expression = _get(composite_type, object)
+        push!(output.args, expression)
     end
     esc(output)
 end
