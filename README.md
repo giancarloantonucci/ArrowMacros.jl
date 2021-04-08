@@ -27,7 +27,7 @@ a += 1
 # (s.a, s.b) == (2, 3)
 ```
 
-`@⤓` and `@⤒` work as `@↓` and `@↑` but search in the tree structure of the `struct`:
+`@⤓` and `@⤒` work like `@↓` and `@↑`, but they search in the tree structure of the `struct`:
 ```julia
 mutable struct B
   c
@@ -46,20 +46,39 @@ a += 1
 `@←` allows for a common syntax between in-place and standard functions:
 ```julia
 f(b) = b
-# a = f(1)
-@← a = f(1)
-
+@← a = f(1) # a = f(1)
 # a == 1
+
 a = [0, 0]
 g(a, b) = a .= b
-# g(a, 1)
-@← a = g(1)
+@← a = g(1) # g(a, 1)
 # a == [1, 1]
 
 h!(a, b) = a .= b
-# h!(a, 2)
-@← a = h(2)
+@← a = h(2) # h!(a, 2)
 # a == [2, 2]
+```
+
+## Timings
+
+```julia
+using ExtractMacro
+using UnPack
+using BenchmarkTools
+```
+
+```julia
+s = A(1, [2, 3])
+@btime @↓ a, b = s
+@btime @extract s : a b
+@btime @unpack a, b = s
+```
+
+```julia
+julia>
+  37.429 ns (0 allocations: 0 bytes)
+  60.720 ns (0 allocations: 0 bytes)
+  37.525 ns (0 allocations: 0 bytes)
 ```
 
 ## Installation
@@ -69,7 +88,7 @@ h!(a, b) = a .= b
 ]add ArrowMacros
 ```
 
-## What's in the pipeline
+## What's next
 
-1. Improve error messages?
+1. Improve error messages.
 2. Allow for `@← a .= f(b...)`

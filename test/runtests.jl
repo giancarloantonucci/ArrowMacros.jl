@@ -5,6 +5,7 @@ mutable struct A
     a
     b
 end
+
 mutable struct B
     c
     d

@@ -19,13 +19,13 @@ end
 function _deep_prepend(composite_type, expression::Expr)
     i₀ = Meta.isexpr(expression, :call) || Meta.isexpr(expression, :.) || Meta.isexpr(expression, :macrocall) ? 2 : 1
     for i in i₀:length(expression.args)
-        dummy = expression.args[i]
-        if dummy isa Symbol
+        tmp = expression.args[i]
+        if tmp isa Symbol
             expression.args[i] = quote
-                $_deep_unpack($composite_type, Val($(Expr(:quote, dummy))))
+                $_deep_unpack($composite_type, Val($(Expr(:quote, tmp))))
             end
-        elseif dummy isa Expr
-            expression.args[i] = _deep_prepend(composite_type, dummy)
+        elseif tmp isa Expr
+            expression.args[i] = _deep_prepend(composite_type, tmp)
         end
     end
     return expression

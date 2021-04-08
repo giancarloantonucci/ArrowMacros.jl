@@ -12,10 +12,10 @@ function _set!(composite_type, object::Expr)
         error("`object` syntax must be like `a` or `c ← f(b)`")
     end
     field, variable_or_expression = object.args[2:3]
-    dummy = gensym()
+    tmp = gensym()
     return quote
-        $dummy = $variable_or_expression
-        $_pack!($composite_type, Val($(Expr(:quote, field))), $dummy)
+        $tmp = $variable_or_expression
+        $_pack!($composite_type, Val($(Expr(:quote, field))), $tmp)
     end
 end
 

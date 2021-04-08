@@ -1,15 +1,21 @@
 _unpack(composite_type, ::Val{field}) where {field} = getproperty(composite_type, field)
+_checkproperty(composite_type, ::Val{field}) where {field} = field in propertynames(composite_type)
 
 function _prepend(composite_type, expression::Expr)
     i₀ = Meta.isexpr(expression, :call) || Meta.isexpr(expression, :.) || Meta.isexpr(expression, :macrocall) ? 2 : 1
     for i in i₀:length(expression.args)
-        dummy = expression.args[i]
-        if dummy isa Symbol
+        tmp = expression.args[i]
+        if tmp isa Symbol
+            tmp_ = string(tmp)
             expression.args[i] = quote
-                $_unpack($composite_type, Val($(Expr(:quote, dummy))))
+                if $_checkproperty($composite_type, Val($(Expr(:quote, tmp))))
+                    $_unpack($composite_type, Val($(Expr(:quote, tmp))))
+                else
+                    $tmp
+                end
             end
-        elseif dummy isa Expr
-            expression.args[i] = _prepend(composite_type, dummy)
+        elseif tmp isa Expr
+            expression.args[i] = _prepend(composite_type, tmp)
         end
     end
     return expression
