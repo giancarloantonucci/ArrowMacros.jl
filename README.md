@@ -59,7 +59,7 @@ h!(a, b) = a .= b
 
 </details>
 
-<details><summary><b>Timings</b></summary>
+<details><summary><b>Tests</b></summary>
 
 ```julia
 using ExtractMacro
@@ -83,7 +83,7 @@ julia>
 
 </details>
 
-<details><summary><b>Future</b></summary>
+<details><summary><b>Next steps</b></summary>
 
 Current plans for further developments are:
 - Improve error messages.
