@@ -83,18 +83,19 @@ julia>
 
 </details>
 
+<details><summary><b>Future</b></summary>
+
+Current plans for further developments are:
+- Improve error messages.
+- Allow for `@← a .= f(b...)`
+
+</details>
+
 <details><summary><b>Installation</b></summary>
 
 `ArrowMacros` is compatible with Julia `v1.0` and above, and it can be installed from the REPL by running
 ```julia
 ]add ArrowMacros
 ```
-
-</details>
-
-<details><summary><b>Future</b></summary>
-
-1. Improve error messages.
-2. Allow for `@← a .= f(b...)`
 
 </details>
