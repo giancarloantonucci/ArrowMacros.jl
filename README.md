@@ -5,14 +5,12 @@ A Julia package providing the macros `@↓`, `@↑`, `@⤓`, `@⤒`, and `@←`.
 [![Build Status](https://github.com/antonuccig/ArrowMacros.jl/workflows/CI/badge.svg)](https://github.com/antonuccig/ArrowMacros.jl/actions)
 [![Coverage](https://codecov.io/gh/antonuccig/ArrowMacros.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/antonuccig/ArrowMacros.jl)
 
-## Usage
-
-```julia
-using ArrowMacros
-```
+<details><summary><b>Usage</b></summary>
 
 `@↓` and `@↑` provide [`ExtractMacro`](https://github.com/carlobaldassi/ExtractMacro.jl)-like features with [`UnPack`](https://github.com/mauro3/UnPack.jl)-like syntax and speed:
 ```julia
+using ArrowMacros
+
 mutable struct A
   a
   b
@@ -59,7 +57,9 @@ h!(a, b) = a .= b
 # a == [2, 2]
 ```
 
-## Timings
+</details>
+
+<details><summary><b>Timings</b></summary>
 
 ```julia
 using ExtractMacro
@@ -81,14 +81,20 @@ julia>
   37.525 ns (0 allocations: 0 bytes)
 ```
 
-## Installation
+</details>
 
-`ArrowMacros` is compatible with Julia `v1.0` and above, and it can be installed by running
+<details><summary><b>Installation</b></summary>
+
+`ArrowMacros` is compatible with Julia `v1.0` and above, and it can be installed from the REPL by running
 ```julia
 ]add ArrowMacros
 ```
 
-## What's next
+</details>
+
+<details><summary><b>Future</b></summary>
 
 1. Improve error messages.
 2. Allow for `@← a .= f(b...)`
+
+</details>
