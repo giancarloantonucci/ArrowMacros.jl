@@ -5,12 +5,14 @@ A Julia package providing the macros `@↓`, `@↑`, `@⤓`, `@⤒`, and `@←`.
 [![Build Status](https://github.com/antonuccig/ArrowMacros.jl/workflows/CI/badge.svg)](https://github.com/antonuccig/ArrowMacros.jl/actions)
 [![Coverage](https://codecov.io/gh/antonuccig/ArrowMacros.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/antonuccig/ArrowMacros.jl)
 
-<details><summary><b>Usage</b></summary>
+## Usage
+
+```julia
+using ArrowMacros
+```
 
 `@↓` and `@↑` provide [`ExtractMacro`](https://github.com/carlobaldassi/ExtractMacro.jl)-like features with [`UnPack`](https://github.com/mauro3/UnPack.jl)-like syntax and speed:
 ```julia
-using ArrowMacros
-
 mutable struct A
   a
   b
@@ -57,45 +59,38 @@ h!(a, b) = a .= b
 # a == [2, 2]
 ```
 
-</details>
-
 <details><summary><b>Tests</b></summary>
 
 ```julia
-using ExtractMacro
-using UnPack
+using UnPack, ExtractMacro
 using BenchmarkTools
 ```
 
 ```julia
 s = A(1, [2, 3])
 @btime @↓ a, b = s
-@btime @extract s : a b
 @btime @unpack a, b = s
+@btime @extract s : a b
 ```
 
 ```julia
 julia>
   37.429 ns (0 allocations: 0 bytes)
-  60.720 ns (0 allocations: 0 bytes)
   37.525 ns (0 allocations: 0 bytes)
+  60.720 ns (0 allocations: 0 bytes)
 ```
 
 </details>
 
-<details><summary><b>Next steps</b></summary>
-
-Current plans for further developments are:
-- Improve error messages.
-- Allow for `@← a .= f(b...)`
-
-</details>
-
-<details><summary><b>Installation</b></summary>
+## Installation
 
 `ArrowMacros` is compatible with Julia `v1.0` and above, and it can be installed from the REPL by running
 ```julia
 ]add ArrowMacros
 ```
 
-</details>
+## What's next?
+
+Current plans for future developments are:
+- Improve error messages.
+- Allow for `@← a .= f(b...)`
