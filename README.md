@@ -84,7 +84,7 @@ julia>
 
 ## Installation
 
-`ArrowMacros` is compatible with Julia `v1.0` and above, and it can be installed from the REPL by running
+`ArrowMacros` is a registered package compatible with Julia `v1.0` and above, and it can be installed from the REPL by running
 ```julia
 ]add ArrowMacros
 ```
