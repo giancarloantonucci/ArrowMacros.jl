@@ -11,12 +11,13 @@ macro ←(input)
     f = input.args[2].args[1]
     f! = Symbol(f, "!")
     b = input.args[2].args[2:end]
+    flag = gensym()
     output = quote
         b_ = ($(b...), )
-        flag = try $a; true; catch; false; end
-        flag && (@isdefined $f!) && hasmethod($f!, Tuple{typeof($a), typeof.(b_)...}) ? $f!($a, $(b...)) :
-        flag && (@isdefined $f)  && hasmethod($f,  Tuple{typeof($a), typeof.(b_)...}) ? $f($a, $(b...))  :
-        (@isdefined $f) && hasmethod($f,  Tuple{typeof.(b_)...})                      ? $a = $f($(b...)) :
+        $flag = try $a; true; catch; false; end
+        $flag && (@isdefined $f!) && hasmethod($f!, Tuple{typeof($a), typeof.(b_)...}) ? $f!($a, $(b...)) :
+        $flag && (@isdefined $f)  && hasmethod($f, Tuple{typeof($a), typeof.(b_)...}) ? $f($a, $(b...))  :
+        (@isdefined $f) && hasmethod($f, Tuple{typeof.(b_)...}) ? $a = $f($(b...)) :
         error("ERROR!")
     end
     esc(output)
