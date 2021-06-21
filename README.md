@@ -70,27 +70,6 @@ h!(a, b) = a .= b
 a == [1, 1]
 ```
 
-## Tests
-
-```julia
-using UnPack, ExtractMacro
-using BenchmarkTools
-```
-
-```julia
-s = B(1, [2, 3])
-@btime @↓ a, b = s
-@btime @unpack a, b = s
-@btime @extract s : a b
-```
-
-```julia
-julia>
-  37.429 ns (0 allocations: 0 bytes)
-  37.525 ns (0 allocations: 0 bytes)
-  60.720 ns (0 allocations: 0 bytes)
-```
-
 ## What's next?
 
 Current plans for future developments are:
