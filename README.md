@@ -37,7 +37,7 @@ a += 1
 (s.a, s.b) == (2, [1, 3])
 ```
 
-`@⤓` and `@⤒` work like `@↓` and `@↑`, but they search in the tree structure of `s`:
+`@⤓` and `@⤒` work like `@↓` and `@↑` but search in the tree structure of `s`:
 
 ```julia
 @⤓ a, b ← d, c ← e[1] = s
