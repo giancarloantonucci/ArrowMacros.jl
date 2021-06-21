@@ -1,24 +1,24 @@
-_get(constructor, ::Val{field}) where {field} = getproperty(constructor, field)
-_check(constructor, ::Val{field}) where {field} = field in typeof(constructor).name.names
+_get(s, ::Val{field}) where {field} = getproperty(s, field)
+_check(s, ::Val{field}) where {field} = field in typeof(s).name.names
 
-function _prepend!(expression, constructor)
-    _iscall = Meta.isexpr(expression, :call)
-    _isdot = Meta.isexpr(expression, :.)
-    _ismacrocall = Meta.isexpr(expression, :macrocall)
+function _prepend!(ex, s)
+    _iscall = Meta.isexpr(ex, :call)
+    _isdot = Meta.isexpr(ex, :.)
+    _ismacrocall = Meta.isexpr(ex, :macrocall)
     i₀ = _iscall || _isdot || _ismacrocall ? 2 : 1
-    for (i, object) in enumerate(expression.args)
+    for (i, v) in enumerate(ex.args)
         if i ≥ i₀
-            if object isa Symbol
-                obj_ = string(object)
-                expression.args[i] = quote
-                    if $_check($constructor, $(Val(object)))
-                        $_get($constructor, $(Val(object)))
+            if v isa Symbol
+                obj_ = string(v)
+                ex.args[i] = quote
+                    if $_check($s, $(Val(v)))
+                        $_get($s, $(Val(v)))
                     else
-                        $object
+                        $v
                     end
                 end
-            elseif object isa Expr
-                _prepend!(object, constructor)
+            elseif v isa Expr
+                _prepend!(v, s)
             end
         end
     end
@@ -41,28 +41,28 @@ macro ↓(input)
     else
         error("`$(input₁)` must be of form `a, c ← f(b)`")
     end
-    constructor = gensym()
+    s = gensym()
     output = quote
-        local $constructor = $input₂
+        local $s = $input₂
     end
-    for object in objects
-        if object isa Symbol
+    for v in objects
+        if v isa Symbol
             output = quote
                 $output
-                $object = $_get($constructor, $(Val(object)))
+                $v = $_get($s, $(Val(v)))
             end
-        elseif object isa Expr && object.args[1] == :←
-            object₁, object₂ = object.args[2:3]
-            if object₂ isa Symbol
+        elseif v isa Expr && v.args[1] == :←
+            v₁, v₂ = v.args[2:3]
+            if v₂ isa Symbol
                 output = quote
                     $output
-                    $(object₁) = $_get($constructor, $(Val(object₂)))
+                    $v₁ = $_get($s, $(Val(v₂)))
                 end
-            elseif object₂ isa Expr
-                _prepend!(object₂, constructor)
+            elseif v₂ isa Expr
+                _prepend!(v₂, s)
                 output = quote
                     $output
-                    $(object₁) = $(object₂)
+                    $v₁ = $v₂
                 end
             end
         end
