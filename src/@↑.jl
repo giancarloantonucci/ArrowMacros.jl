@@ -36,5 +36,8 @@ macro ↑(input)
             end
         end
     end
-    esc(output)
+    output = quote
+        $output
+        nothing
+    end |> esc
 end
