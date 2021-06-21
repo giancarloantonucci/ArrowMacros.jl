@@ -18,7 +18,7 @@ A Julia package providing the macros `@↓`, `@↑`, `@⤓`, `@⤒`, and `@←`.
 using ArrowMacros
 ```
 
-- `@↓` and `@↑` provide [`ExtractMacro`](https://github.com/carlobaldassi/ExtractMacro.jl)-like features with [`UnPack`](https://github.com/mauro3/UnPack.jl)-like syntax and speed:
+`@↓` and `@↑` provide [`ExtractMacro`](https://github.com/carlobaldassi/ExtractMacro.jl)-like features with [`UnPack`](https://github.com/mauro3/UnPack.jl)-like syntax and speed:
 
 ```julia
 mutable struct A; a; b; c; end
@@ -37,7 +37,7 @@ a += 1
 (s.a, s.b) == (2, [1, 3])
 ```
 
-- `@⤓` and `@⤒` work like `@↓` and `@↑`, but they search in the tree structure of `s`:
+`@⤓` and `@⤒` work like `@↓` and `@↑`, but they search in the tree structure of `s`:
 
 ```julia
 @⤓ a, b ← d, c ← e[1] = s
@@ -49,7 +49,7 @@ a += 1
 (s.a, s.b) == (0, 8)
 ```
 
-- `@←` allows for a common syntax between in-place and standard functions:
+`@←` allows for a common syntax between in-place and standard functions:
 
 ```julia
 f(b) = b
