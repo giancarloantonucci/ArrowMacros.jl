@@ -78,7 +78,7 @@ using BenchmarkTools
 ```
 
 ```julia
-s = A(1, [2, 3])
+s = B(1, [2, 3])
 @btime @↓ a, b = s
 @btime @unpack a, b = s
 @btime @extract s : a b
