@@ -1,45 +1,25 @@
-_unpack(composite_type, ::Val{field}) where {field} = getproperty(composite_type, field)
-_checkproperty(composite_type, ::Val{field}) where {field} = field in propertynames(composite_type)
+_get(constructor, ::Val{field}) where {field} = getproperty(constructor, field)
+_check(constructor, ::Val{field}) where {field} = field in typeof(constructor).name.names
 
-function _prepend(composite_type, expression::Expr)
-    i₀ = Meta.isexpr(expression, :call) || Meta.isexpr(expression, :.) || Meta.isexpr(expression, :macrocall) ? 2 : 1
-    for i in i₀:length(expression.args)
-        tmp = expression.args[i]
-        if tmp isa Symbol
-            tmp_ = string(tmp)
-            expression.args[i] = quote
-                if $_checkproperty($composite_type, Val($(Expr(:quote, tmp))))
-                    $_unpack($composite_type, Val($(Expr(:quote, tmp))))
-                else
-                    $tmp
+function _prepend!(expression, constructor)
+    _iscall = Meta.isexpr(expression, :call)
+    _isdot = Meta.isexpr(expression, :.)
+    _ismacrocall = Meta.isexpr(expression, :macrocall)
+    i₀ = _iscall || _isdot || _ismacrocall ? 2 : 1
+    for (i, object) in enumerate(expression.args)
+        if i ≥ i₀
+            if object isa Symbol
+                obj_ = string(object)
+                expression.args[i] = quote
+                    if $_check($constructor, $(Val(object)))
+                        $_get($constructor, $(Val(object)))
+                    else
+                        $object
+                    end
                 end
+            elseif object isa Expr
+                _prepend!(object, constructor)
             end
-        elseif tmp isa Expr
-            expression.args[i] = _prepend(composite_type, tmp)
-        end
-    end
-    return expression
-end
-
-function _get(composite_type, object::Symbol)
-    variable = field = object
-    return quote
-        $variable = $_unpack($composite_type, Val($(Expr(:quote, field))))
-    end
-end
-
-function _get(composite_type, object::Expr)
-    if object.args[1] != :←
-        error("`object` syntax must be like `a` or `c ← f(b)`")
-    end
-    variable, field = object.args[2:3]
-    if field isa Symbol
-        return quote
-            $variable = $_unpack($composite_type, Val($(Expr(:quote, field))))
-        end
-    elseif field isa Expr
-        return quote
-            $variable = $(_prepend(composite_type, field))
         end
     end
 end
@@ -47,26 +27,45 @@ end
 """
     @↓ a, c ← f(b) = s
 
-unpacks objects from composite types.
+extracts fields from structs.
 """
 macro ↓(input)
     if !Meta.isexpr(input, :(=))
-        error("`input` syntax must be like `a, c ← f(b) = s`")
+        error("`$(input)` must be of form `a, c ← f(b) = s`")
     end
-    lhs, rhs = input.args[1:2]
-    composite_type = gensym()
-    array_of_objects = if lhs isa Symbol || lhs isa Expr && lhs.args[1] == :←
-        [lhs]
-    elseif lhs isa Expr && Meta.isexpr(lhs, :tuple)
-        lhs.args
+    input₁, input₂ = input.args[1:2]
+    objects = if input₁ isa Symbol || input₁ isa Expr && input₁.args[1] == :←
+        [input₁]
+    elseif input₁ isa Expr && Meta.isexpr(input₁, :tuple)
+        input₁.args
     else
-        error("`lhs` syntax must be like `a, c ← f(b)`")
+        error("`$(input₁)` must be of form `a, c ← f(b)`")
     end
-    output = Expr(:block)
-    push!(output.args, :(local $composite_type = $rhs))
-    for object in array_of_objects
-        expression = _get(composite_type, object)
-        push!(output.args, expression)
+    constructor = gensym()
+    output = quote
+        local $constructor = $input₂
+    end
+    for object in objects
+        if object isa Symbol
+            output = quote
+                $output
+                $object = $_get($constructor, $(Val(object)))
+            end
+        elseif object isa Expr && object.args[1] == :←
+            object₁, object₂ = object.args[2:3]
+            if object₂ isa Symbol
+                output = quote
+                    $output
+                    $(object₁) = $_get($constructor, $(Val(object₂)))
+                end
+            elseif object₂ isa Expr
+                _prepend!(object₂, constructor)
+                output = quote
+                    $output
+                    $(object₁) = $(object₂)
+                end
+            end
+        end
     end
     esc(output)
 end

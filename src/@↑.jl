@@ -1,47 +1,40 @@
-_pack!(composite_type, ::Val{field}, value) where {field} = setproperty!(composite_type, field, value)
-
-function _set!(composite_type, object::Symbol)
-    field = variable = object
-    return quote
-        $_pack!($composite_type, Val($(Expr(:quote, field))), $variable)
-    end
-end
-
-function _set!(composite_type, object::Expr)
-    if object.args[1] != :←
-        error("`object` syntax must be like `a` or `c ← f(b)`")
-    end
-    field, variable_or_expression = object.args[2:3]
-    tmp = gensym()
-    return quote
-        $tmp = $variable_or_expression
-        $_pack!($composite_type, Val($(Expr(:quote, field))), $tmp)
-    end
-end
+_set!(constructor, ::Val{field}, value) where {field} = setproperty!(constructor, field, value)
 
 """
     @↑ s = a, c ← f(b)
 
-packs objects into mutable composite types.
+inserts objects into structs' fields.
 """
 macro ↑(input)
     if !Meta.isexpr(input, :(=))
-        error("`input` syntax must be like `s = a, c ← f(b)`")
+        error("`$(input)` must be of form `s = a, c ← f(b)`")
     end
-    lhs, rhs = input.args[1:2]
-    composite_type = gensym()
-    array_of_object = if rhs isa Symbol || (rhs isa Expr && rhs.args[1] == :←)
-        [rhs]
-    elseif rhs isa Expr && rhs.head == :tuple
-        rhs.args
+    input₁, input₂ = input.args[1:2]
+    objects = if input₂ isa Symbol || input₂ isa Expr && input₂.args[1] == :←
+        [input₂]
+    elseif input₂ isa Expr && Meta.isexpr(input₂, :tuple)
+        input₂.args
     else
-        error("`rhs` syntax must be like `a, c ← f(b)`")
+        error("`$(input₂)` must be of form `a, c ← f(b)`")
     end
-    output = Expr(:block)
-    push!(output.args, :(local $composite_type = $lhs))
-    for object in array_of_object
-        expression = _set!(composite_type, object)
-        push!(output.args, expression)
+    constructor = gensym()
+    output = quote
+        local $constructor = $input₁
+    end
+    for object in objects
+        if object isa Symbol
+            field = value = object
+            output = quote
+                $output
+                $_set!($constructor, $(Val(field)), $value)
+            end
+        elseif object isa Expr && object.args[1] == :←
+            field, value = object.args[2:3]
+            output = quote
+                $output
+                $_set!($constructor, $(Val(field)), $value)
+            end
+        end
     end
     esc(output)
 end
