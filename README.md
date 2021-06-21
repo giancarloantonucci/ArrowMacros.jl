@@ -31,21 +31,23 @@ end
 
 s = A(1, [2, 3], B(4, [5, 6]))
 
-@↓ a, b ← (@. abs(b) + 1) = s
-# (a, b) == (1, [3, 4])
+@↓ a, b ← b .- a = s
+(a, b) == (1, [1, 2])
 
-@↑ s = a ← a + 1, b ← (@. 2b - 1)
-# (s.a, s.b) == (2, [5, 7])
+a += 1
+@↑ s = a, b ← (@. 2b - 1)
+(s.a, s.b) == (2, [1, 3])
 ```
 
 - `@⤓` and `@⤒` work like `@↓` and `@↑`, but they search in the tree structure of `s`:
 
 ```julia
 @⤓ a, b ← d, c ← e[1] = s
-# (a, b, c) == (2, 4, 5)
+(a, b, c) == (2, 4, 5)
 
-@⤒ s = a ← a + 1, b ← 2b
-# (s.a, s.b) == (3, 8)
+
+@⤒ s = a ← 0, b ← 2b
+(s.a, s.b) == (0, 8)
 ```
 
 - `@←` allows for a common syntax between in-place and standard functions:
@@ -64,8 +66,6 @@ h!(a, b) = a .= b
 @← a = h(2) # same as `h!(a, 2)`
 # a == [2, 2]
 ```
-
-<!-- <details><summary><b>Tests</b></summary> </details> -->
 
 ## Tests
 
