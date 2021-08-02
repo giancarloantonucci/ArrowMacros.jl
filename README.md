@@ -1,13 +1,12 @@
-# ArrowMacros
+# ArrowMacros.jl
 
 A Julia package providing the macros `@↓`, `@↑`, `@⤓`, `@⤒`, and `@←`.
 
-[![Build Status](https://github.com/antonuccig/ArrowMacros.jl/workflows/CI/badge.svg)](https://github.com/antonuccig/ArrowMacros.jl/actions)
-[![Coverage](https://codecov.io/gh/antonuccig/ArrowMacros.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/antonuccig/ArrowMacros.jl)
+[![Build Status](https://img.shields.io/github/workflow/status/antonuccig/ArrowMacros.jl/CI)](https://github.com/antonuccig/ArrowMacros.jl/actions) [![Coverage](https://img.shields.io/codecov/c/github/antonuccig/ArrowMacros.jl?label=coverage)](https://codecov.io/gh/antonuccig/ArrowMacros.jl)
 
 ## Installation
 
-`ArrowMacros` is a registered package compatible with Julia `v1.0` and above. From the Julia REPL,
+ArrowMacros is a [registered package](https://juliahub.com/ui/Search?q=ArrowMacros&type=packages) compatible with Julia v1.0 and above. From the Julia REPL,
 ```julia
 ]add ArrowMacros
 ```
@@ -18,7 +17,7 @@ A Julia package providing the macros `@↓`, `@↑`, `@⤓`, `@⤒`, and `@←`.
 using ArrowMacros
 ```
 
-`@↓` and `@↑` provide [`ExtractMacro`](https://github.com/carlobaldassi/ExtractMacro.jl)-like features with [`UnPack`](https://github.com/mauro3/UnPack.jl)-like syntax and speed:
+`@↓` and `@↑` provide [ExtractMacro.jl](https://github.com/carlobaldassi/ExtractMacro.jl)-like features with [UnPack.jl](https://github.com/mauro3/UnPack.jl)-like syntax and speed:
 
 ```julia
 mutable struct A; a; b; c; end
