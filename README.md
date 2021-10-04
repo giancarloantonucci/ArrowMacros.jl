@@ -2,7 +2,7 @@
 
 A Julia package providing the macros `@↓`, `@↑`, `@⤓`, `@⤒`, and `@←`.
 
-[![Build Status](https://img.shields.io/github/workflow/status/antonuccig/ArrowMacros.jl/CI)](https://github.com/antonuccig/ArrowMacros.jl/actions) [![Coverage](https://img.shields.io/codecov/c/github/antonuccig/ArrowMacros.jl?label=coverage)](https://codecov.io/gh/antonuccig/ArrowMacros.jl)
+[![Build Status](https://img.shields.io/github/workflow/status/giancarloantonucci/ArrowMacros.jl/CI)](https://github.com/giancarloantonucci/ArrowMacros.jl/actions) [![Coverage](https://img.shields.io/codecov/c/github/giancarloantonucci/ArrowMacros.jl?label=coverage)](https://codecov.io/gh/giancarloantonucci/ArrowMacros.jl)
 
 ## Installation
 
