@@ -1,7 +1,10 @@
 using Documenter
 using ArrowMacros
 
-PAGES = ["Home" => "index.md"]
+PAGES = [
+    "Home" => "index.md",
+    "Tests" => "tests.md"
+]
 
 makedocs(;
     sitename = "ArrowMacros.jl",
