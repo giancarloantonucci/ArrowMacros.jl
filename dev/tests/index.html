@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Tests · ArrowMacros.jl</title><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.039/juliamono-regular.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.11/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../">ArrowMacros.jl</a></span></div><form class="docs-search" action="../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../">Home</a></li><li class="is-active"><a class="tocitem" href>Tests</a><ul class="internal"><li><a class="tocitem" href="#Unpacking-with-@"><span>Unpacking with <code>@↓</code></span></a></li><li><a class="tocitem" href="#Packing-with-@"><span>Packing with <code>@↑</code></span></a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Tests</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Tests</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/giancarloantonucci/ArrowMacros.jl/blob/master/docs/src/tests.md" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="Tests"><a class="docs-heading-anchor" href="#Tests">Tests</a><a id="Tests-1"></a><a class="docs-heading-anchor-permalink" href="#Tests" title="Permalink"></a></h1><h2 id="Unpacking-with-@"><a class="docs-heading-anchor" href="#Unpacking-with-@">Unpacking with <code>@↓</code></a><a id="Unpacking-with-@-1"></a><a class="docs-heading-anchor-permalink" href="#Unpacking-with-@" title="Permalink"></a></h2><pre><code class="language-julia hljs">using UnPack, ExtractMacro
+using BenchmarkTools
+s = A(1, [2, 3], B(4, [5, 6]))
+v = [s]</code></pre><ol><li>Unpacking a field from a struct:</li></ol><pre><code class="language-julia hljs">julia&gt; @btime @extract s : a
+29.122 ns (0 allocations: 0 bytes)
+
+julia&gt; @btime @unpack a = s
+18.967 ns (0 allocations: 0 bytes)
+
+julia&gt; @btime @↓ a = s
+19.619 ns (0 allocations: 0 bytes)</code></pre><ol><li>Unpacking a field from a vector of structs:</li></ol><pre><code class="language-julia hljs">julia&gt; @btime @extract v[1] : a
+45.981 ns (0 allocations: 0 bytes)
+
+julia&gt; @btime @unpack a = v[1]
+36.982 ns (0 allocations: 0 bytes)
+
+julia&gt; @btime @↓ a = v[1]
+35.256 ns (0 allocations: 0 bytes)</code></pre><ol><li>Unpacking more than one fields from a struct:</li></ol><pre><code class="language-julia hljs">julia&gt; @btime @extract s : a b
+57.859 ns (0 allocations: 0 bytes)
+
+julia&gt; @btime @unpack a, b = s
+37.299 ns (0 allocations: 0 bytes)
+
+julia&gt; @btime @↓ a, b = s
+37.149 ns (0 allocations: 0 bytes)</code></pre><ol><li>Unpacking whilst doing some basic maths:</li></ol><pre><code class="language-julia hljs">julia&gt; @btime @extract s : a = 2a
+47.218 ns (0 allocations: 0 bytes)
+
+julia&gt; @btime @↓ a ← 2a = s
+59.135 ns (0 allocations: 0 bytes)</code></pre><ol><li>Unpacking into differently named variables:</li></ol><pre><code class="language-julia hljs">julia&gt; @btime @extract s : a = b .+ 1 b
+552.968 ns (3 allocations: 160 bytes)
+
+julia&gt; foo() = @↓ a ← b .+ 1, b = s
+julia&gt; @btime foo()
+569.386 ns (3 allocations: 160 bytes)</code></pre><ol><li>Unpacking from nested structs:</li></ol><pre><code class="language-julia hljs">julia&gt; @btime @extract s.c : d e
+115.139 ns (0 allocations: 0 bytes)
+
+julia&gt; @btime @unpack d, e = s.c
+71.929 ns (0 allocations: 0 bytes)
+
+julia&gt; @btime @↓ d, e = s.c
+67.673 ns (0 allocations: 0 bytes)</code></pre><h2 id="Packing-with-@"><a class="docs-heading-anchor" href="#Packing-with-@">Packing with <code>@↑</code></a><a id="Packing-with-@-1"></a><a class="docs-heading-anchor-permalink" href="#Packing-with-@" title="Permalink"></a></h2><ol><li>Packing a variable into a struct:</li></ol><pre><code class="language-julia hljs">julia&gt; @btime @pack! s = a
+62.497 ns (1 allocation: 16 bytes)
+
+julia&gt; @btime @↑ s = a
+21.954 ns (0 allocations: 0 bytes)</code></pre><ol><li>Packing a variable into a vector of structs:</li></ol><pre><code class="language-julia hljs">julia&gt; @btime @pack! v[1] = a
+80.517 ns (1 allocation: 16 bytes)
+
+julia&gt; @btime @↑ v[1] = a
+39.042 ns (0 allocations: 0 bytes)</code></pre><ol><li>Packing more than one variables into a struct:</li></ol><pre><code class="language-julia hljs">julia&gt; @btime @pack! s = a, b
+93.617 ns (1 allocation: 32 bytes)
+
+julia&gt; @btime @↑ s = a, b
+38.943 ns (0 allocations: 0 bytes)</code></pre><ol><li>Packing into nested structs:</li></ol><pre><code class="language-julia hljs">julia&gt; @btime @pack! s.c = d, e
+135.453 ns (1 allocation: 32 bytes)
+
+julia&gt; @btime @↑ s.c = d, e
+70.029 ns (0 allocations: 0 bytes)</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Home</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.7 on <span class="colophon-date" title="Wednesday 13 October 2021 16:24">Wednesday 13 October 2021</span>. Using Julia version 1.8.0-DEV.715.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
