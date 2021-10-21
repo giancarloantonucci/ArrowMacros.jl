@@ -14,7 +14,7 @@ macro ←(input)
     flag = gensym()
     output = quote
         b_ = ($(b...), )
-        $flag = try $a; true; catch; false; end
+        $flag = try $a; true; catch; false; end # needs to change, slow
         $flag && (@isdefined $f!) && hasmethod($f!, Tuple{typeof($a), typeof.(b_)...}) ? $f!($a, $(b...)) :
         $flag && (@isdefined $f)  && hasmethod($f, Tuple{typeof($a), typeof.(b_)...}) ? $f($a, $(b...))  :
         (@isdefined $f) && hasmethod($f, Tuple{typeof.(b_)...}) ? $a = $f($(b...)) :
