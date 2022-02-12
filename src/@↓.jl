@@ -25,13 +25,13 @@ function _prepend!(ex, s)
 end
 
 """
-    @↓ a, c ← f(b) = s
+    @↓ a, b ← f(c) = s
 
 extracts fields from structs.
 """
 macro ↓(input)
     if !Meta.isexpr(input, :(=))
-        error("`$(input)` must be of form `a, c ← f(b) = s`")
+        error("`$(input)` must be of form `a, b ← f(c) = s`")
     end
     input₁, input₂ = input.args[1:2]
     objects = if input₁ isa Symbol || input₁ isa Expr && input₁.args[1] == :←
@@ -39,7 +39,7 @@ macro ↓(input)
     elseif input₁ isa Expr && Meta.isexpr(input₁, :tuple)
         input₁.args
     else
-        error("`$(input₁)` must be of form `a, c ← f(b)`")
+        error("`$(input₁)` must be of form `a, b ← f(c)`")
     end
     s = gensym()
     output = quote

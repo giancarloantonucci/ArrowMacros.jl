@@ -1,13 +1,13 @@
 _set!(s, ::Val{field}, value) where {field} = setproperty!(s, field, value)
 
 """
-    @↑ s = a, c ← f(b)
+    @↑ s = a, b ← f(c)
 
-inserts vs into structs' fields.
+inserts into structs.
 """
 macro ↑(input)
     if !Meta.isexpr(input, :(=))
-        error("`$(input)` must be of form `s = a, c ← f(b)`")
+        error("`$(input)` must be of form `s = a, b ← f(c)`")
     end
     input₁, input₂ = input.args[1:2]
     vs = if input₂ isa Symbol || input₂ isa Expr && input₂.args[1] == :←
@@ -15,7 +15,7 @@ macro ↑(input)
     elseif input₂ isa Expr && Meta.isexpr(input₂, :tuple)
         input₂.args
     else
-        error("`$(input₂)` must be of form `a, c ← f(b)`")
+        error("`$(input₂)` must be of form `a, b ← f(c)`")
     end
     s = gensym()
     output = quote
