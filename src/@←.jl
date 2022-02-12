@@ -1,24 +1,19 @@
 """
     @← a = f(b...)
 
-changes `a = f(b...)` into one of the following (in this order):
-1. `f!(a, b...)`
-2. `f(a, b...)`
-3. `a = f(b...)`
+returns either `a = f(b...)` or `f!(a, b...)`, in this order.
 """
 macro ←(input)
     a = input.args[1]
     f = input.args[2].args[1]
     f! = Symbol(f, "!")
     b = input.args[2].args[2:end]
-    flag = gensym()
     output = quote
-        b_ = ($(b...), )
-        $flag = try $a; true; catch; false; end # needs to change, slow
-        $flag && (@isdefined $f!) && hasmethod($f!, Tuple{typeof($a), typeof.(b_)...}) ? $f!($a, $(b...)) :
-        $flag && (@isdefined $f)  && hasmethod($f, Tuple{typeof($a), typeof.(b_)...}) ? $f($a, $(b...))  :
-        (@isdefined $f) && hasmethod($f, Tuple{typeof.(b_)...}) ? $a = $f($(b...)) :
-        error("ERROR!")
+        if (@isdefined $f)
+            $a = $f($(b...))
+        elseif (@isdefined $f!) && (@isdefined $a)
+            $f!($a, $(b...))
+        end
     end
     esc(output)
 end

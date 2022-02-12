@@ -1,5 +1,5 @@
 _get(s, ::Val{field}) where {field} = getproperty(s, field)
-_check(s, ::Val{field}) where {field} = field in typeof(s).name.names
+# _check(s, ::Val{field}) where {field} = field in typeof(s).name.names
 
 function _prepend!(ex, s)
     _iscall = Meta.isexpr(ex, :call)
@@ -11,11 +11,11 @@ function _prepend!(ex, s)
             if v isa Symbol
                 obj_ = string(v)
                 ex.args[i] = quote
-                    if $_check($s, $(Val(v)))
+                    # if $_check($s, $(Val(v)))
                         $_get($s, $(Val(v)))
-                    else
-                        $v
-                    end
+                    # else
+                    #     $v
+                    # end
                 end
             elseif v isa Expr
                 _prepend!(v, s)
