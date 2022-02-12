@@ -22,49 +22,34 @@ using ArrowMacros
 ```julia
 mutable struct A; a; b; c; end
 mutable struct B; d; e; end
-s = A(1, [2, 3], B(4, [5, 6])) # true
-```
+s = A(1, [2, 3], B(4, [5, 6]))
 
-```julia
 @↓ a, b ← b .- a = s
-(a, b) == (1, [1, 2]) # true
-```
+# (a, b) == (1, [1, 2])
 
-```julia
 a += 1
 @↑ s = a, b ← (@. 2b - 1)
-(s.a, s.b) == (2, [1, 3]) # true
+# (s.a, s.b) == (2, [1, 3])
 ```
 
 `@⤓` and `@⤒` work like `@↓` and `@↑` but search in the tree structure of `s`:
 
 ```julia
 @⤓ a, b ← d, c ← e[1] = s
-(a, b, c) == (2, 4, 5) # true
-```
+# (a, b, c) == (2, 4, 5)
 
-```julia
 @⤒ s = a ← 0, b ← 2b
-(s.a, s.b) == (0, 8) # true
+# (s.a, s.b) == (0, 8)
 ```
 
-`@←` allows for a common syntax between in-place and standard functions:
+`@←` allows for a common syntax between standard and in-place functions:
 
 ```julia
 f(b) = b
 @← a = f(1) # same as `a = f(1)`
-a == 1 # true
-```
+# a == 1
 
-```julia
-a = [0, 0]
-g(a, b) = a .= b
-@← a = g(0) # same as `g(a, 1)`
-a == [0, 0] # true
-```
-
-```julia
-h!(a, b) = a .= b
-@← a = h(1) # same as `h!(a, 2)`
-a == [1, 1] # true
+g!(a, b) = a .= b
+@← a = g(1) # same as `g!(a, 2)`
+# a == [1, 1]
 ```
