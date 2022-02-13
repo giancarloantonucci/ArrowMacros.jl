@@ -1,4 +1,4 @@
-# NSDEBase.jl
+# ArrowMacros.jl
 
 This is the documentation of [ArrowMacros.jl](https://github.com/giancarloantonucci/ArrowMacros.jl), a Julia package providing the macros `@↓` and `@↑`.
 
