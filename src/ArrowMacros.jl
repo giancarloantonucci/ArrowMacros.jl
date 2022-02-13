@@ -1,11 +1,8 @@
 module ArrowMacros
 
-export @↓, @↑, @⤓, @⤒, @←
+export @↓, @↑
 
 include("@↓.jl")
 include("@↑.jl")
-include("@⤓.jl")
-include("@⤒.jl")
-include("@←.jl")
 
 end
