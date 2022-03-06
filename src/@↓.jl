@@ -65,5 +65,6 @@ macro ↓(input)
     output = quote
         $output
         nothing
-    end |> esc
+    end
+    return esc(output)
 end
