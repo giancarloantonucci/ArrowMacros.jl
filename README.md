@@ -13,16 +13,14 @@ ArrowMacros is a [registered package](https://juliahub.com/ui/Search?q=ArrowMacr
 
 ## Usage
 
+`@↓` and `@↑` provide [ExtractMacro.jl](https://github.com/carlobaldassi/ExtractMacro.jl)-like features with [UnPack.jl](https://github.com/mauro3/UnPack.jl)-like syntax and speed. For example,
+
 ```julia
 using ArrowMacros
 mutable struct A; a; b; c; end
 mutable struct B; d; e; end
 s = A(1, [2, 3], B(4, [5, 6]))
-```
 
-`@↓` and `@↑` provide [ExtractMacro.jl](https://github.com/carlobaldassi/ExtractMacro.jl)-like features with [UnPack.jl](https://github.com/mauro3/UnPack.jl)-like syntax and speed:
-
-```julia
 @↓ a, b ← b .- a = s
 # (a, b) == (1, [1, 2])
 
