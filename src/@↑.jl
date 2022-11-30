@@ -3,7 +3,7 @@ _set!(s, ::Val{field}, value) where {field} = setproperty!(s, field, value)
 """
     @↑ s = a, b ← f(c)
 
-inserts into structs.
+upload into fields of structs.
 """
 macro ↑(input)
     if !Meta.isexpr(input, :(=))

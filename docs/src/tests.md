@@ -1,10 +1,12 @@
 # Tests
 
+All tests were run in the REPL with Julia 1.6 using an Apple M1 Pro chip.
+
 ## `@↓`
 
 ```jl
 using Revise
-using ArrowMacros, DownloadMacro, UnPack
+using ArrowMacros, ExtractMacro, UnPack
 using BenchmarkTools
 ```
 
@@ -20,42 +22,42 @@ v = [s]
 
 ```jl
 @btime @extract s : a
-# 27.797 ns (0 allocations: 0 bytes)
+# 25.226 ns (0 allocations: 0 bytes)
 @btime @unpack a = s
-# 18.437 ns (0 allocations: 0 bytes)
+# 18.388 ns (0 allocations: 0 bytes)
 @btime @↓ a = s
-# 18.428 ns (0 allocations: 0 bytes)
+# 18.180 ns (0 allocations: 0 bytes)
 ```
 
 2. Download from a vector of structs:
 
 ```jl
 @btime @extract v[1] : a
-# 49.558 ns (0 allocations: 0 bytes)
+# 44.910 ns (0 allocations: 0 bytes)
 @btime @unpack a = v[1]
-# 36.833 ns (0 allocations: 0 bytes)
+# 36.836 ns (0 allocations: 0 bytes)
 @btime @↓ a = v[1]
-# 34.892 ns (0 allocations: 0 bytes)
+# 37.760 ns (0 allocations: 0 bytes)
 ```
 
 3. Download multiple fields:
 
 ```jl
 @btime @extract s : a b
-# 51.711 ns (0 allocations: 0 bytes)
+# 44.571 ns (0 allocations: 0 bytes)
 @btime @unpack a, b = s
-# 35.136 ns (0 allocations: 0 bytes)
+# 32.519 ns (0 allocations: 0 bytes)
 @btime @↓ a, b = s
-# 35.544 ns (0 allocations: 0 bytes)
+# 33.157 ns (0 allocations: 0 bytes)
 ```
 
 4. Download whilst doing some maths:
 
 ```jl
 @btime @extract s : a = 2a
-# 45.942 ns (0 allocations: 0 bytes)
+# 48.245 ns (0 allocations: 0 bytes)
 @btime @↓ a ← 2a = s
-# 35.529 ns (0 allocations: 0 bytes)
+# 41.204 ns (0 allocations: 0 bytes)
 ```
 
 5. Download with different names:
@@ -64,21 +66,21 @@ For some reason, `@↓ a ← b .+ 1, b = s` is not parsed correctly by `@btime`,
 
 ```jl
 @btime @extract s : a = b .+ 1 b
-# 435.237 ns (3 allocations: 144 bytes)
+# 338.470 ns (3 allocations: 160 bytes)
 f() = @↓ a ← b .+ 1, b = s
 @btime f()
-# 417.050 ns (3 allocations: 144 bytes)
+# 320.763 ns (3 allocations: 160 bytes)
 ```
 
 6. Download from nested structs:
 
 ```jl
 @btime @extract s.c : d e
-# 111.674 ns (0 allocations: 0 bytes)
+# 82.642 ns (0 allocations: 0 bytes)
 @btime @unpack d, e = s.c
-# 64.945 ns (0 allocations: 0 bytes)
+# 52.369 ns (0 allocations: 0 bytes)
 @btime @↓ d, e = s.c
-# 62.787 ns (0 allocations: 0 bytes)
+# 59.402 ns (0 allocations: 0 bytes)
 ```
 
 ## `@↑`
@@ -92,34 +94,34 @@ f() = @↓ a ← b .+ 1, b = s
 
 ```jl
 @btime @pack! s = a
-# 176.963 ns (1 allocation: 16 bytes)
+# 54.822 ns (1 allocation: 16 bytes)
 @btime @↑ s = a
-# 24.577 ns (0 allocations: 0 bytes)
+# 21.314 ns (0 allocations: 0 bytes)
 ```
 
 2. Upload into a vector of structs:
 
 ```jl
 @btime @pack! v[1] = a
-# 194.824 ns (1 allocation: 16 bytes)
+# 65.032 ns (1 allocation: 16 bytes)
 @btime @↑ v[1] = a
-# 39.872 ns (0 allocations: 0 bytes)
+# 37.215 ns (0 allocations: 0 bytes)
 ```
 
 3. Upload multiple variables:
 
 ```jl
 @btime @pack! s = a, b
-# 226.328 ns (1 allocation: 32 bytes)
+# 70.927 ns (1 allocation: 32 bytes)
 @btime @↑ s = a, b
-# 44.901 ns (0 allocations: 0 bytes)
+# 34.911 ns (0 allocations: 0 bytes)
 ```
 
 4. Upload into nested structs:
 
 ```jl
 @btime @pack! s.c = d, e
-# 272.644 ns (1 allocation: 32 bytes)
+# 91.186 ns (1 allocation: 32 bytes)
 @btime @↑ s.c = d, e
-# 70.399 ns (0 allocations: 0 bytes)
+# 57.264 ns (0 allocations: 0 bytes)
 ```

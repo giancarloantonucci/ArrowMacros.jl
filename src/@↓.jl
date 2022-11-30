@@ -22,7 +22,7 @@ end
 """
     @↓ a, b ← f(c) = s
 
-extracts fields from structs.
+download from fields of structs.
 """
 macro ↓(input)
     if !Meta.isexpr(input, :(=))
