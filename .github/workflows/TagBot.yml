@@ -1,9 +1,22 @@
+# Inert until the package is in a registry: TagBot reacts to registry merges.
+# Kept so it goes live the moment the package is registered in General.
+# The deprecated `lookback` input and the over-broad permissions list of the
+# stock template are dropped.
 name: TagBot
 on:
   issue_comment:
     types:
       - created
   workflow_dispatch:
+
+permissions:
+  actions: read
+  checks: read
+  contents: write
+  issues: read
+  pull-requests: read
+  statuses: read
+
 jobs:
   TagBot:
     if: github.event_name == 'workflow_dispatch' || github.actor == 'JuliaTagBot'
@@ -12,4 +25,4 @@ jobs:
       - uses: JuliaRegistries/TagBot@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          ssh: ${{ secrets.DOCUMENTER_KEY }}
+          ssh: ${{ secrets.DOCUMENTER_KEY }}   # so the created tag triggers Documenter

@@ -1,0 +1,14 @@
+# .github/dependabot.yml  (note: this file sits in .github/, not .github/workflows/)
+#
+# ArrowMacros is registered in General, so Dependabot covers both the GitHub
+# Actions versions and the Julia [compat] bounds. It replaces CompatHelper.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+  - package-ecosystem: julia
+    directory: /
+    schedule:
+      interval: weekly
