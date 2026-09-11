@@ -1,13 +1,16 @@
 name = "ArrowMacros"
 uuid = "46a4b217-d1c8-4502-9c1a-7bf73a71908c"
 authors = ["Giancarlo A. Antonucci"]
-version = "0.2.1"
+version = "0.2.2"
 
 [compat]
-julia = "1"
+Aqua = "0.8"
+Test = "1"
+julia = "1.6"
 
 [extras]
+Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test"]
+test = ["Aqua", "Test"]

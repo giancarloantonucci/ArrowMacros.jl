@@ -1,9 +1,19 @@
+"""
+    _set!(s, ::Val{field}, value)
+
+internal: `setproperty!` with the field name lifted into a `Val`; the writing
+twin of `_get`.
+"""
 _set!(s, ::Val{field}, value) where {field} = setproperty!(s, field, value)
 
 """
     @↑ s = a, b ← f(c)
 
-upload into fields of structs.
+"upload": write local values into fields of `s`. `@↑ s = a, b` sets
+`s.a = a` and `s.b = b`; the arrow form sets a field from any expression:
+`@↑ s = a ← 2b` sets `s.a = 2b` with `b` a LOCAL variable (unlike `@↓`, the
+right of `←` here is plain code, not field-rewritten). Writing to a name
+that is not a field of `s` throws the usual field error.
 """
 macro ↑(input)
     if !Meta.isexpr(input, :(=))
