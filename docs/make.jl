@@ -3,7 +3,7 @@ using ArrowMacros
 
 PAGES = [
     "Home" => "index.md",
-    "Tests" => "tests.md"
+    "API" => "api.md"
 ]
 
 makedocs(;
@@ -11,9 +11,10 @@ makedocs(;
     format = Documenter.HTML(),
     modules = [ArrowMacros],
     pages = PAGES,
+    checkdocs = :exports, # every export must carry a docstring, or the build fails
     authors = "Giancarlo A. Antonucci <giancarlo.antonucci@icloud.com>"
 )
 
 deploydocs(;
-    repo = "https://github.com/giancarloantonucci/ArrowMacros.jl"
+    repo = "github.com/giancarloantonucci/ArrowMacros.jl.git"
 )
