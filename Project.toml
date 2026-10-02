@@ -5,7 +5,7 @@ version = "0.2.2"
 
 [compat]
 Aqua = "0.8"
-Test = "1"
+Test = "<0.0.1, 1"
 julia = "1.6"
 
 [extras]
