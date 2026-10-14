@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.2.3 (unreleased)
+## 0.2.3
 
 ### Fixed
 - In the expression form of `@↓`, the constants `nothing`, `missing`, `π`,
