@@ -37,13 +37,13 @@ Field access lowers to `Val`-specialized `getproperty`/`setproperty!`, so the su
 In the expression form of `@↓` (right of `←`), bare symbols read as fields of `s`. The rules, pinned by the test suite:
 
 - Function names, macro names, qualified names (`Base.abs`) and keyword names are left alone: `@↓ x ← round(a; digits=2) = s` rewrites `a` only.
-- Literals stay as they are; in chained comparisons (`0 < a < 2`) only the operands are rewritten.
+- Literals stay as they are, and so do the constants `nothing`, `missing`, `π`, `ℯ`, `im`, `Inf`, `NaN`, and `begin`/`end` inside indexing: `@↓ x ← u[end] = s` reads `s.u[end]`.
+- In chained comparisons (`0 < a < 2`) only the operands are rewritten.
 - Chained field access `a.c` is **not** rewritten — bind the field first: `@↓ tmp ← a = s`, then `tmp.c`.
+- Names bound inside the expression (anonymous-function arguments, comprehension variables) are rewritten too, so such expressions are not supported.
 - Indices follow the symbol rule: in `b[i]`, `i` must be a literal or a field of `s`.
 - A name that is not a field of `s` throws the usual field error.
 
 In `@↑`, the right of `←` is plain code — locals stay locals.
 
 Read the [documentation](https://giancarloantonucci.github.io/ArrowMacros.jl/dev) for a complete overview of this package.
-
-

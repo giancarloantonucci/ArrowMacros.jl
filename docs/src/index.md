@@ -4,7 +4,7 @@ This is the documentation of [ArrowMacros.jl](https://github.com/giancarloantonu
 
 ## Installation
 
-From the Julia REPL,
+ArrowMacros is registered and supports Julia v1.10 and above. From the Julia REPL,
 
 ```
 ]add ArrowMacros
@@ -26,11 +26,13 @@ Field access lowers to `Val`-specialized `getproperty`/`setproperty!`, so the su
 
 ## Rewrite rules
 
-In the expression form of `@↓`, bare symbols read as fields of `s`. The rules — pinned by the test suite:
+In the expression form of `@↓`, bare symbols read as fields of `s`. The rules, pinned by the test suite:
 
 - Function names, macro names, qualified names (`Base.abs`) and keyword names are left alone.
-- Literals stay as they are; in chained comparisons (`0 < a < 2`) only the operands are rewritten.
+- Literals stay as they are, and so do the constants `nothing`, `missing`, `π`, `ℯ`, `im`, `Inf`, `NaN`, and `begin`/`end` inside indexing.
+- In chained comparisons (`0 < a < 2`) only the operands are rewritten.
 - Chained access `a.c` is **not** rewritten — bind the field first.
+- Names bound inside the expression (anonymous-function arguments, comprehension variables) are rewritten too, so such expressions are not supported.
 - Indices follow the symbol rule: in `b[i]`, `i` must be a literal or a field.
 - A name that is not a field throws the usual field error.
 

@@ -1,12 +1,28 @@
 # Changelog
 
-## 0.2.3 development revision (unreleased)
+## 0.2.3 (unreleased)
 
-- Preserve constants and indexing `begin`/`end` in expression-form field downloads; add macro regressions.
-Applied common formatting and documented the Julia 1.10 development baseline. No macro semantics changed.
+### Fixed
+- In the expression form of `@↓`, the constants `nothing`, `missing`, `π`,
+  `ℯ`, `im`, `Inf`, `NaN` are left alone, and so are `begin`/`end` inside
+  indexing: `@↓ x ← u[end] = s` now reads `s.u[end]`.
+- Malformed entries in a field list (`@↓ a, 1 = s`), a literal right of `←`
+  in `@↓` (`@↓ x ← 1 = s`) and a non-name left of `←` in `@↑` now raise an
+  error at expansion; before, the first two were silently dropped.
 
-All Julia sources, tests, and examples follow the repository JuliaFormatter configuration. Historical implementation notes have been removed from current API descriptions.
+### Changed
+- Supported Julia: `1.10` and later (was `1.6`).
+- Sources, tests and examples follow the repository JuliaFormatter
+  configuration (Blue style), checked in CI.
+- The rewrite helper has one loop for all expression heads; the two macros
+  share their entry parsing and build their output as a flat block.
 
+### Added
+- Tests for plain renames (`@↓ x ← b = s`), constants, indexing bounds,
+  expression operands in chained comparisons, and the new error paths.
+- The rewrite rules in the README and docs now list the constants and the
+  `begin`/`end` rule, and state that names bound inside the expression are
+  not supported.
 
 ## 0.2.2
 
@@ -23,5 +39,3 @@ All Julia sources, tests, and examples follow the repository JuliaFormatter conf
 ### Added
 - Docstrings for both macros and the rewrite helpers, stating the rewrite
   rules; Aqua in the test suite.
-
-

@@ -29,6 +29,9 @@ end
         @↓ a, b = s
         @test (a, b) == (1, [2, 3])
 
+        @↓ x ← b = s
+        @test x == [2, 3]
+
         @↓ a ← b .+ 2 = s
         @test a == [4, 5]
 
@@ -79,10 +82,10 @@ end
         s = A(1.234, [2, 3])
 
         @↓ x ← b[1] = s
-        @test x == 2                        # literal index works
+        @test x == 2                        # literal index
 
         @↓ x ← round(a; digits=1) = s
-        @test x == 1.2                      # keyword NAMES untouched (head :kw — fixed, used to error)
+        @test x == 1.2                      # keyword names untouched
 
         @↓ x ← Base.abs(-a) = s
         @test x == 1.234                    # qualified call names untouched
@@ -91,46 +94,57 @@ end
         @test x == (1.234, [2, 3])          # tuple of fields
 
         @↓ x ← (0 < a < 2) = s
-        @test x === true                    # chained comparison (head :comparison — fixed, used to error)
+        @test x === true                    # chained comparison: operands only
 
         @↓ x ← (a > 1 ? b : a) = s
         @test x == [2, 3]                   # ternary over fields
 
+        # A local index is not supported: it reads as a field and throws.
         i = 1
         @test_throws NoFieldError @↓ x ← b[i] = s
-        # a local index is NOT supported: it reads as a field and throws loudly
 
-        # Dotted access is not rewritten — `qqq` stays a local name (here absent):
+        # Dotted access is not rewritten: `qqq` stays a local name (here absent).
         @test_throws UndefVarError eval(:(@↓ x ← qqq.c = A(1, B(2, 3))))
     end
 
+    @testset "constants and indexing bounds" begin
+        s = (u=[2, 3, 5], a=2)
+
+        @↓ x ← u[end] = s
+        @test x == 5
+
+        @↓ x ← u[(begin + 1):(end - 1)] = s
+        @test x == [3]
+
+        @↓ x ← a * π + im = s
+        @test x == 2π + im
+
+        @↓ x ← (nothing, missing, ℯ, Inf, NaN) = s
+        @test isequal(x, (nothing, missing, ℯ, Inf, NaN))
+
+        # Expression operands of a chained comparison are rewritten too.
+        @↓ x ← (0 < 2a < 5) = s
+        @test x === true
+
+        @↓ x ← (0 < 2a < 3) = s
+        @test x === false
+
+        @↓ x ← (1 < u[end] < 10) = s
+        @test x === true
+    end
+
     @testset "error paths" begin
-        @test_throws LoadError eval(:(@↓ a))       # not an assignment
-        @test_throws LoadError eval(:(@↓ f(x) = s))  # malformed unpack list
-        @test_throws LoadError eval(:(@↑ s))       # not an assignment
-        @test_throws LoadError eval(:(@↑ s = 1))   # malformed field list
+        @test_throws LoadError eval(:(@↓ a))            # not an assignment
+        @test_throws LoadError eval(:(@↓ f(x) = s))     # malformed unpack list
+        @test_throws LoadError eval(:(@↓ (a, 1) = s))   # malformed entry in a list
+        @test_throws LoadError eval(:(@↓ x ← 1 = s))    # literal right of `←`
+        @test_throws LoadError eval(:(@↑ s))            # not an assignment
+        @test_throws LoadError eval(:(@↑ s = 1))        # malformed field list
+        @test_throws LoadError eval(:(@↑ s = (a, 1)))   # malformed entry in a list
+        @test_throws LoadError eval(:(@↑ s = a.b ← 1))  # non-name left of `←`
 
         s = A(1, 2)
-        @test_throws NoFieldError @↓ z = s         # missing field names itself in the error
+        @test_throws NoFieldError @↓ z = s              # missing field names itself
         @test_throws NoFieldError @↑ s = z ← 1
     end
-end # outer testset
-
-@testset "Expression constants and indexing bounds" begin
-    s = (u=[2, 3, 5], a=2)
-    @↓ x ← u[end] = s
-    @test x == 5
-    @↓ y ← u[(begin + 1):(end - 1)] = s
-    @test y == [3]
-    @↓ z ← a * π + im = s
-    @test z == 2π + im
-    @↓ z ← (nothing, missing, ℯ, Inf, NaN) = s
-    @test isequal(z, (nothing, missing, ℯ, Inf, NaN))
-    # Expression operands of a chained comparison are rewritten too.
-    @↓ c ← (0 < 2a < 5) = s
-    @test c === true
-    @↓ c ← (0 < 2a < 3) = s
-    @test c === false
-    @↓ c ← (1 < u[end] < 10) = s
-    @test c === true
 end
