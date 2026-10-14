@@ -117,13 +117,20 @@ end
 end # outer testset
 
 @testset "Expression constants and indexing bounds" begin
-    s=(u=[2, 3, 5], a=2)
+    s = (u=[2, 3, 5], a=2)
     @↓ x ← u[end] = s
     @test x == 5
     @↓ y ← u[(begin + 1):(end - 1)] = s
     @test y == [3]
-    @↓ z ← a*π + im = s
+    @↓ z ← a * π + im = s
     @test z == 2π + im
     @↓ z ← (nothing, missing, ℯ, Inf, NaN) = s
     @test isequal(z, (nothing, missing, ℯ, Inf, NaN))
+    # Expression operands of a chained comparison are rewritten too.
+    @↓ c ← (0 < 2a < 5) = s
+    @test c === true
+    @↓ c ← (0 < 2a < 3) = s
+    @test c === false
+    @↓ c ← (1 < u[end] < 10) = s
+    @test c === true
 end
