@@ -16,6 +16,8 @@ lookups on `s`, in place. The rules — pinned by the test suite, since four
 packages downstream lean on them:
 
 - Bare symbols become field lookups; literals stay as they are.
+- Constants `nothing`, `missing`, `π`, `ℯ`, `im`, `Inf`, `NaN` are left alone.
+- Inside indexing expressions, `begin` and `end` retain their Julia meaning.
 - The head position of calls, macro calls and dotted names is left alone:
   `f(a)` keeps `f`, `Base.abs(a)` keeps `Base.abs`.
 - In chained comparisons (`0 < a < 2`) only the operands are rewritten.
@@ -25,29 +27,35 @@ packages downstream lean on them:
   qualified names, at the price of chained access.
 - Indices follow the symbol rule: in `b[i]`, `i` must be a literal or a field.
 """
-function _prepend!(ex, s)
+function _prepend!(ex, s; indexing=false)
+    indexing = indexing || Meta.isexpr(ex, :ref)
+    reserved(v) =
+        v in (:nothing, :missing, :π, :ℯ, :im, :Inf, :NaN) || (indexing && v in (:begin, :end))
     if Meta.isexpr(ex, :comparison)
         # Chained comparison: operands sit at odd indices, operators at even —
         # only the operands are field candidates.
-        for i = 1:2:length(ex.args)
+        for i in 1:2:length(ex.args)
             v = ex.args[i]
-            if v isa Symbol
+            if v isa Symbol && !reserved(v)
                 ex.args[i] = _fieldlookup(v, s)
             elseif v isa Expr
-                _prepend!(v, s)
+                _prepend!(v, s; indexing)
             end
         end
         return nothing
     end
-    skiphead = Meta.isexpr(ex, :call) || Meta.isexpr(ex, :.) ||
-               Meta.isexpr(ex, :macrocall) || Meta.isexpr(ex, :kw)
+    skiphead =
+        Meta.isexpr(ex, :call) ||
+        Meta.isexpr(ex, :.) ||
+        Meta.isexpr(ex, :macrocall) ||
+        Meta.isexpr(ex, :kw)
     i₀ = skiphead ? 2 : 1
     for (i, v) in enumerate(ex.args)
         if i ≥ i₀
-            if v isa Symbol
+            if v isa Symbol && !reserved(v)
                 ex.args[i] = _fieldlookup(v, s)
             elseif v isa Expr
-                _prepend!(v, s)
+                _prepend!(v, s; indexing)
             end
         end
     end
@@ -65,7 +73,8 @@ symbols read as fields of `s` — `@↓ x ← 2a + b[1] = s` binds
 
 In the expression form, function names, macro names, qualified names
 (`Base.abs`) and keyword names are left alone; literals are untouched;
-every other bare symbol is a field of `s`. Chained access `a.c` is not
+constants `nothing`, `missing`, `π`, `ℯ`, `im`, `Inf`, `NaN` and indexing
+`begin`/`end` are untouched. Other bare symbols are fields of `s`. Chained access `a.c` is not
 rewritten — bind the field first. A name that is not a field of `s` throws
 the usual field error.
 """

@@ -6,7 +6,7 @@ A Julia package providing the macros `@↓` and `@↑`.
 
 ## Installation
 
-ArrowMacros is a [registered package](https://juliahub.com/ui/Search?q=ArrowMacros&type=packages) compatible with Julia v1.6 and above. From the Julia REPL,
+ArrowMacros is a [registered package](https://juliahub.com/ui/Search?q=ArrowMacros&type=packages) compatible with Julia v1.10 and above. From the Julia REPL,
 
 ```
 ]add ArrowMacros
@@ -45,3 +45,5 @@ In the expression form of `@↓` (right of `←`), bare symbols read as fields o
 In `@↑`, the right of `←` is plain code — locals stay locals.
 
 Read the [documentation](https://giancarloantonucci.github.io/ArrowMacros.jl/dev) for a complete overview of this package.
+
+

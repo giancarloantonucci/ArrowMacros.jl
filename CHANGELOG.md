@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.3 development revision (unreleased)
+
+- Preserve constants and indexing `begin`/`end` in expression-form field downloads; add macro regressions.
+Applied common formatting and documented the Julia 1.10 development baseline. No macro semantics changed.
+
+All Julia sources, tests, and examples follow the repository JuliaFormatter configuration. Historical implementation notes have been removed from current API descriptions.
+
+
 ## 0.2.2
 
 ### Fixed
@@ -15,3 +23,5 @@
 ### Added
 - Docstrings for both macros and the rewrite helpers, stating the rewrite
   rules; Aqua in the test suite.
+
+
