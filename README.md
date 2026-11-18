@@ -1,12 +1,12 @@
 # ArrowMacros.jl
 
-A Julia package providing the macros `@↓` and `@↑`.
+A Julia package providing two macros: `@↓`, which unpacks properties into local variables, and `@↑`, which writes values back into properties.
 
 [![Documentation](https://img.shields.io/badge/docs-dev-blue.svg)](https://giancarloantonucci.github.io/ArrowMacros.jl/dev) ![Build Status](https://img.shields.io/github/actions/workflow/status/giancarloantonucci/ArrowMacros.jl/CI.yml) ![Coverage Status](https://img.shields.io/codecov/c/github/giancarloantonucci/ArrowMacros.jl)
 
 ## Installation
 
-ArrowMacros is a [registered package](https://juliahub.com/ui/Search?q=ArrowMacros&type=packages) compatible with Julia v1.10 and above. From the Julia REPL,
+Install from the Julia REPL (Julia 1.10 or later):
 
 ```
 ]add ArrowMacros
@@ -14,36 +14,29 @@ ArrowMacros is a [registered package](https://juliahub.com/ui/Search?q=ArrowMacr
 
 ## Usage
 
-`@↓` and `@↑` provide [ExtractMacro.jl](https://github.com/carlobaldassi/ExtractMacro.jl)-like features with [UnPack.jl](https://github.com/mauro3/UnPack.jl)-like syntax and speed. For example,
+The macros provide [ExtractMacro.jl](https://github.com/carlobaldassi/ExtractMacro.jl)-like features with [UnPack.jl](https://github.com/mauro3/UnPack.jl)-like syntax and speed:
 
 ```julia
 using ArrowMacros
-mutable struct A; a; b; c; end
-mutable struct B; d; e; end
-s = A(1, [2, 3], B(4, [5, 6]))
 
-@↓ a, b ← b .- a = s
-# (a, b) == (1, [1, 2])
+mutable struct Point
+    x::Int
+    y::Int
+end
 
-a += 1
-@↑ s = a, b ← (@. 2b - 1)
-# (s.a, s.b) == (2, [1, 3])
+p = Point(2, 5)
+
+@↓ x, gap ← y - x = p
+# x = p.x; gap = p.y - p.x
 ```
 
-Field access lowers to `Val`-specialized `getproperty`/`setproperty!`, so the sugar costs nothing at run time.
+In `@↓`, the expression `y - x` to the right of `←` reads properties from `p`, so `gap` evaluates to `3`.
 
-### Rewrite rules
+```julia
+@↑ p = y ← 2 * gap
+# p.y = 2 * gap
+```
 
-In the expression form of `@↓` (right of `←`), bare symbols read as fields of `s`. The rules, pinned by the test suite:
+In `@↑`, `2 * gap` to the right of `←` is ordinary code; `gap` refers to the local variable, and `p.y` is updated to `6`.
 
-- Function names, macro names, qualified names (`Base.abs`) and keyword names are left alone: `@↓ x ← round(a; digits=2) = s` rewrites `a` only.
-- Literals stay as they are, and so do the constants `nothing`, `missing`, `π`, `ℯ`, `im`, `Inf`, `NaN`, and `begin`/`end` inside indexing: `@↓ x ← u[end] = s` reads `s.u[end]`.
-- In chained comparisons (`0 < a < 2`) only the operands are rewritten.
-- Chained field access `a.c` is **not** rewritten — bind the field first: `@↓ tmp ← a = s`, then `tmp.c`.
-- Names bound inside the expression (anonymous-function arguments, comprehension variables) are rewritten too, so such expressions are not supported.
-- Indices follow the symbol rule: in `b[i]`, `i` must be a literal or a field of `s`.
-- A name that is not a field of `s` throws the usual field error.
-
-In `@↑`, the right of `←` is plain code — locals stay locals.
-
-Read the [documentation](https://giancarloantonucci.github.io/ArrowMacros.jl/dev) for a complete overview of this package.
+See the [documentation](https://giancarloantonucci.github.io/ArrowMacros.jl/dev) for a full overview of the package.
