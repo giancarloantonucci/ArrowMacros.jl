@@ -39,4 +39,4 @@ In `@↓`, the expression `y - x` to the right of `←` reads properties from `p
 
 In `@↑`, `2 * gap` to the right of `←` is ordinary code; `gap` refers to the local variable, and `p.y` is updated to `6`.
 
-See the [documentation](https://giancarloantonucci.github.io/ArrowMacros.jl/dev) for a full overview of the package.
+See the [documentation](https://giancarloantonucci.github.io/ArrowMacros.jl/dev) for details.
