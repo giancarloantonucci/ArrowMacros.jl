@@ -20,7 +20,7 @@ macro ↑(input)
     target, sources = input.args
     s = gensym()
     body = Any[:(local $s = $target)]
-    for v in _entries(sources, "a, b ← f(c)")
+    for v in _entries(sources)
         field, value = v isa Symbol ? (v, v) : (v.args[2], v.args[3])
         field isa Symbol || error("the left of `←` in `$(v)` must be a field name")
         push!(body, :($_set!($s, $(Val(field)), $value)))

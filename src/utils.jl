@@ -1,23 +1,12 @@
-"""
-    _isarrow(ex)
-
-internal: whether `ex` is an arrow entry `name ← value`, which Julia parses as
-the call `←(name, value)`.
-"""
-_isarrow(ex) = Meta.isexpr(ex, :call, 3) && ex.args[1] === :←
-
-"""
-    _entries(ex, form)
-
-internal: the entries of a macro's field list `ex` — a single entry or a
-tuple of them. Every entry must be a bare name or an arrow `name ← value`;
-anything else raises an error naming the expected `form`, rather than being
-silently dropped.
-"""
-function _entries(ex, form)
+# The entries of a macro's list `ex`: a single entry or a tuple of them. Each must be
+# a bare name or an arrow `name ← value` (parsed as the call `←(name, value)`);
+# anything else is an error rather than being silently dropped.
+function _entries(ex)
     entries = Meta.isexpr(ex, :tuple) ? ex.args : Any[ex]
     for v in entries
-        v isa Symbol || _isarrow(v) || error("`$(ex)` must be of form `$(form)`")
+        v isa Symbol ||
+            (Meta.isexpr(v, :call, 3) && v.args[1] === :←) ||
+            error("`$(ex)` must be of form `a, b ← f(c)`")
     end
     return entries
 end

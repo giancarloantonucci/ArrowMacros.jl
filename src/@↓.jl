@@ -18,8 +18,7 @@ _isreserved(v::Symbol, indexing::Bool) = v in _CONSTANTS || (indexing && v in (:
 
 internal: rewrite bare symbols inside the arrow expression `ex` into field
 lookups on `s`, in place. `indexing` records whether `ex` sits inside an
-indexing expression. The rules, pinned by the test suite because the NSDE
-packages rely on them:
+indexing expression. The expression-rewrite rules, covered by the test suite:
 
 - Bare symbols become field lookups; literals stay as they are.
 - Constants `nothing`, `missing`, `π`, `ℯ`, `im`, `Inf`, `NaN` are left alone.
@@ -77,7 +76,7 @@ macro ↓(input)
     targets, source = input.args
     s = gensym()
     body = Any[:(local $s = $source)]
-    for v in _entries(targets, "a, b ← f(c)")
+    for v in _entries(targets)
         if v isa Symbol
             push!(body, :($v = $(_fieldlookup(v, s))))
             continue
