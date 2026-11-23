@@ -1,6 +1,8 @@
 using Documenter
 using ArrowMacros
 
+cp(joinpath(@__DIR__, "..", "README.md"), joinpath(@__DIR__, "src", "index.md"); force=true)
+
 PAGES = ["Home" => "index.md", "API" => "api.md"]
 
 makedocs(;
