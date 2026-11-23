@@ -2,7 +2,7 @@
 
 A Julia package providing two macros: `@↓`, which unpacks properties into local variables, and `@↑`, which writes values back into properties.
 
-[![Documentation](https://img.shields.io/badge/docs-dev-blue.svg)](https://giancarloantonucci.github.io/ArrowMacros.jl/dev) ![Build Status](https://img.shields.io/github/actions/workflow/status/giancarloantonucci/ArrowMacros.jl/CI.yml) ![Coverage Status](https://img.shields.io/codecov/c/github/giancarloantonucci/ArrowMacros.jl)
+[![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://giancarloantonucci.github.io/ArrowMacros.jl/stable) [![Documentation](https://img.shields.io/badge/docs-dev-blue.svg)](https://giancarloantonucci.github.io/ArrowMacros.jl/dev) ![Build Status](https://img.shields.io/github/actions/workflow/status/giancarloantonucci/ArrowMacros.jl/CI.yml) ![Coverage Status](https://img.shields.io/codecov/c/github/giancarloantonucci/ArrowMacros.jl)
 
 ## Installation
 
