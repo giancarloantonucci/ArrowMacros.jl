@@ -1,21 +1,17 @@
-# `s.v`: lowers to `getproperty(s, :v)` with a constant field name.
-_fieldlookup(v::Symbol, s) = Expr(:., s, QuoteNode(v))
+const _JULIA_CONSTANTS = (:nothing, :missing, :π, :ℯ, :im, :Inf, :NaN)
 
-# Names that keep their Julia meaning in the expression form of `@↓`.
-const _CONSTANTS = (:nothing, :missing, :π, :ℯ, :im, :Inf, :NaN)
+_isreserved(v::Symbol, indexing::Bool) =
+    v in _JULIA_CONSTANTS || (indexing && v in (:begin, :end))
 
-_isreserved(v::Symbol, indexing::Bool) = v in _CONSTANTS || (indexing && v in (:begin, :end))
-
-# Rewrite bare symbols in `ex` into field lookups on `s`, in place, following the rules
-# in the `@↓` docstring. `indexing` records whether `ex` sits inside an indexing
-# expression. Dotted access is deliberately not rewritten: that is what protects
-# qualified names such as `Base.abs`, at the price of chained access.
+# Dotted access is not rewritten: this protects qualified names such as `Base.abs`,
+# at the price of chained access
 function _prepend!(ex, s; indexing=false)
+    Meta.isexpr(ex, :quote) && return nothing
     indexing = indexing || Meta.isexpr(ex, :ref)
     positions = if Meta.isexpr(ex, :comparison)
-        1:2:length(ex.args) # operands at odd positions, operators at even ones
+        1:2:length(ex.args)  # operands at odd positions, operators at even ones
     elseif Meta.isexpr(ex, (:call, :., :macrocall, :kw))
-        2:length(ex.args) # skip the function, module, macro or keyword name
+        2:length(ex.args)  # skip the function, module, macro or keyword name
     else
         1:length(ex.args)
     end
@@ -33,20 +29,21 @@ end
 """
     @↓ a, b ← f(c) = s
 
-"download": unpack fields of `s` into local variables. `@↓ a, b = s` binds
+Unpack properties of `s` into variables. `@↓ a, b = s` binds
 `a = s.a` and `b = s.b`. The arrow renames or transforms: `@↓ x ← b = s`
 binds `x = s.b`, and the right of `←` may be an expression in which bare
-symbols read as fields of `s`: `@↓ x ← 2a + b[1] = s` binds
+symbols read as properties of `s`: `@↓ x ← 2a + b[1] = s` binds
 `x = 2s.a + s.b[1]`.
 
 In the expression form, function names, macro names, qualified names
 (`Base.abs`) and keyword names are left alone, and so are literals, the
 constants `nothing`, `missing`, `π`, `ℯ`, `im`, `Inf`, `NaN`, and `begin`/`end`
-inside indexing. Other bare symbols are fields of `s`. A bare name on its own
-to the right of `←` is always a field: `@↓ x ← π = s` reads `s.π`. Chained
-access `a.c` is not rewritten: bind the field first. Anonymous functions and
-comprehensions that introduce local names are unsupported. A name that is not
-a field of `s` throws the usual field error.
+inside indexing. Other bare symbols are properties of `s`. A bare name on its
+own to the right of `←` is always a property: `@↓ x ← π = s` reads `s.π`.
+Chained access `a.c` is not rewritten: bind the property first. Quoted
+expressions (`:(a + 1)`) are left alone. Anonymous functions and comprehensions
+that introduce local names are unsupported. A name that is not a property of
+`s` throws the usual error.
 """
 macro ↓(input)
     Meta.isexpr(input, :(=)) || error("`$(input)` must be of form `a, b ← f(c) = s`")
@@ -58,11 +55,11 @@ macro ↓(input)
         if value isa Symbol
             push!(body, :($name = $(_fieldlookup(value, s))))
         elseif value isa Expr
-            rhs = deepcopy(value)
+            rhs = copy(value)
             _prepend!(rhs, s)
             push!(body, :($name = $rhs))
         else
-            error("the right of `←` in `$(v)` must be a field name or an expression")
+            error("the right of `←` in `$(v)` must be a property name or an expression")
         end
     end
     push!(body, nothing)
