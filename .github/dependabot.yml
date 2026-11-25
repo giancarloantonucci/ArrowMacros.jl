@@ -1,5 +1,3 @@
-# ArrowMacros is registered in General, so Dependabot covers both the GitHub
-# Actions versions and the Julia [compat] bounds. It replaces CompatHelper.
 version: 2
 updates:
   - package-ecosystem: github-actions
