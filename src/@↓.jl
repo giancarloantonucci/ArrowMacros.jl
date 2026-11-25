@@ -1,7 +1,6 @@
 const _JULIA_CONSTANTS = (:nothing, :missing, :π, :ℯ, :im, :Inf, :NaN)
 
-_isreserved(v::Symbol, indexing::Bool) =
-    v in _JULIA_CONSTANTS || (indexing && v in (:begin, :end))
+_isreserved(v::Symbol, indexing::Bool) = v in _JULIA_CONSTANTS || (indexing && v in (:begin, :end))
 
 # Dotted access is not rewritten: this protects qualified names such as `Base.abs`,
 # at the price of chained access
