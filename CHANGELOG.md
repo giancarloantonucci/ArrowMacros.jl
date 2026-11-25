@@ -1,5 +1,31 @@
 # Changelog
 
+## Unreleased patch
+
+### Fixed
+- `@↓` rejects a non-name left of `←` (`@↓ x[1] ← a = s`); before, it
+  assigned into the array.
+- `@↓` leaves quoted expressions alone.
+- `@↓` no longer mutates the caller's expression, so expanding the same
+  expression twice works.
+
+### Changed
+- Both macros expand to plain property access (`s.a`, `s.a = v`) instead of
+  `Val`-wrapped helpers; behaviour is unchanged.
+- Docstrings and docs speak of properties rather than struct fields, and
+  state that a bare name to the right of `←` is always a property.
+- The docs home page is generated from the README; the API page lists only
+  the exported macros; the module docstring is gone, so `?ArrowMacros`
+  shows the README.
+- Licence the author-owned code and documentation under EUPL 1.2 or later;
+  preserve earlier GPL grants and third-party notices.
+- Remove obsolete claims that NSDE uses the expression-rewrite forms.
+
+### Added
+- Tests for non-name targets, bare constant names, quoted code, input
+  immutability and single evaluation of the source and target; tests grouped
+  by macro.
+
 ## 0.2.3
 
 ### Fixed
