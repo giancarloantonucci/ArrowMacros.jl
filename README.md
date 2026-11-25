@@ -1,6 +1,6 @@
 # ArrowMacros.jl
 
-A Julia package providing two macros: `@↓`, which unpacks properties into local variables, and `@↑`, which writes values back into properties.
+A Julia package providing two macros: `@↓`, which unpacks properties into variables, and `@↑`, which writes values back into properties.
 
 [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://giancarloantonucci.github.io/ArrowMacros.jl/stable) [![Documentation](https://img.shields.io/badge/docs-dev-blue.svg)](https://giancarloantonucci.github.io/ArrowMacros.jl/dev) ![Build Status](https://img.shields.io/github/actions/workflow/status/giancarloantonucci/ArrowMacros.jl/CI.yml) ![Coverage Status](https://img.shields.io/codecov/c/github/giancarloantonucci/ArrowMacros.jl)
 
@@ -14,7 +14,7 @@ Install from the Julia REPL (Julia 1.10 or later):
 
 ## Usage
 
-The macros provide [ExtractMacro.jl](https://github.com/carlobaldassi/ExtractMacro.jl)-like features with [UnPack.jl](https://github.com/mauro3/UnPack.jl)-like syntax and speed:
+The macros provide [ExtractMacro.jl](https://github.com/carlobaldassi/ExtractMacro.jl)-like features with [UnPack.jl](https://github.com/mauro3/UnPack.jl)-like syntax:
 
 ```julia
 using ArrowMacros
