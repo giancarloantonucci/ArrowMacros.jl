@@ -8,6 +8,8 @@ as in `@↓`: `@↑ s = a ← 2b` sets `s.a = 2b`, with `b` the local variable.
 macro ↑(input)
     Meta.isexpr(input, :(=)) || error("`$(input)` must be of form `s = a, b ← f(c)`")
     target, sources = input.args
+    # `f(x) = a, b` parses as a short function definition, which wraps the right in a block
+    Meta.isexpr(sources, :block) && (sources = sources.args[end])
     s = gensym()
     body = Any[:(local $s = $target)]
     for v in _entries(sources)

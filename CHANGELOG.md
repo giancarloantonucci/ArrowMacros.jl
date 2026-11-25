@@ -8,6 +8,8 @@
 - `@↓` leaves quoted expressions alone.
 - `@↓` no longer mutates the caller's expression, so expanding the same
   expression twice works.
+- `@↑ f(x) = a, b` works when the target is a function call; before, it
+  failed to parse.
 
 ### Changed
 - Both macros expand to plain property access (`s.a`, `s.a = v`) instead of
